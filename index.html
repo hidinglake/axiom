@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#000000">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Axiom</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,8 +14,8 @@
    root phrase against the rewrite, shows what each word and mark earned and waits for the next segment to be asked for. After the last segment, the three averages. The page has no color
    of its own: color belongs to the images and the spheres, and in the review to what lost points. */
 :root {
-  --paper: #0a0e14; --paper-raised: #121a25; --ink: #e8eef5; --ink-soft: #8c9cb1;
-  --grid: #3b5b70; --grid-faint: #1b2633; --pick: #ffffff; --bad: #ff8b7a; --part: #f0e442; --good: #6ddc8f;
+  --paper: #000000; --paper-raised: #111111; --ink: #f0f0f0; --ink-soft: #9a9a9a;
+  --grid: #5a5a5a; --grid-faint: #242424; --pick: #ffffff; --bad: #ff8b7a; --part: #f0e442; --good: #6ddc8f;
   --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: "Barlow", "Segoe UI", Helvetica, Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -47,13 +48,26 @@ main { position: relative; flex: 1; min-height: 0; display: grid; place-items: c
 .mode input:focus-visible ~ .disc { outline: 2px solid var(--pick); outline-offset: 3px; }
 .param { display: flex; flex-direction: column; gap: 10px; }
 .eyebrow { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); }
-.levels { display: grid; grid-template-columns: repeat(10, 1fr); border: 1.5px solid var(--ink); }
+.levels { display: grid; grid-template-columns: repeat(2, 1fr); border: 1.5px solid var(--ink); }
 .levels label { position: relative; display: block; }
 .levels label + label { border-left: 1.5px solid var(--ink); }
 .levels input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .levels span { display: block; padding: 9px 0; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 18px; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
 .levels input:checked + span { background: var(--ink); color: var(--paper); }
-.levels.two { grid-template-columns: repeat(2, 1fr); }     /* the same boxes, for a setting that is only off or on */
+.levels.two { grid-template-columns: repeat(2, 1fr); }     /* two boxes, for a setting that is only off or on */
+/* A level is set by dragging a square along a line; the square shows the level it stands on. The square and the line
+   are drawn here, and a range input lies unseen over them, so dragging, tapping the line and the arrow keys all work. */
+.slide { position: relative; height: 44px; --at: 0; }
+.slide::before { content: ""; position: absolute; left: 22px; right: 22px; top: calc(50% - .75px); border-top: 1.5px solid var(--ink); }
+.slide .tick { position: absolute; top: calc(50% - 5px); left: calc(22px + var(--i) * (100% - 44px)); width: 1.5px; height: 10px; margin-left: -.75px; background: var(--ink); }
+.slide input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: grab; -webkit-appearance: none; appearance: none; touch-action: pan-y; }
+.slide input:active { cursor: grabbing; }
+.slide input::-webkit-slider-thumb { -webkit-appearance: none; width: 44px; height: 44px; }
+.slide input::-moz-range-thumb { width: 44px; height: 44px; border: 0; }
+.slide .knob { position: absolute; top: 0; left: calc(var(--at) * (100% - 44px)); display: grid; place-items: center; width: 44px; height: 44px; background: var(--ink); color: var(--paper);
+  font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; transition: left .1s ease; }
+.slide input:focus-visible ~ .knob { outline: 2px solid var(--pick); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .slide .knob { transition: none; } }
 .levels.two span { font-size: 16px; letter-spacing: .12em; text-transform: uppercase; }
 .levels input:focus-visible + span { outline: 2px solid var(--pick); outline-offset: 2px; }
 /* the two times, side by side at the top: large bold digits typed straight onto the page with no box around them,
@@ -205,12 +219,6 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
   .setup { gap: 20px; }
   .disc { width: min(100%, 48px); }
 }
-/* a phone: the ten levels in two rows of five, so each box is wide enough for a thumb */
-@media (max-width: 430px) {
-  .levels:not(.two) { grid-template-columns: repeat(5, 1fr); }
-  .levels:not(.two) label:nth-child(6) { border-left: 0; }
-  .levels:not(.two) label:nth-child(n+6) { border-top: 1.5px solid var(--ink); }
-}
 @media (max-width: 560px) {
   main { padding: 20px 14px; }
   .go-on { bottom: -20px; padding-bottom: 20px; }
@@ -263,11 +271,11 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
     </div>
     <div class="param" role="group" aria-labelledby="sea-name">
       <span class="eyebrow" id="sea-name">Selective attention</span>
-      <div class="levels" id="sea-levels"></div>
+      <div class="slide" id="sea-levels"></div>
     </div>
     <div class="param" role="group" aria-labelledby="wm-name">
       <span class="eyebrow" id="wm-name">Working memory</span>
-      <div class="levels" id="wm-levels"></div>
+      <div class="slide" id="wm-levels"></div>
     </div>
     <div class="param" role="group" aria-labelledby="pics-name">
       <span class="eyebrow" id="pics-name">Images during phrase recall</span>
@@ -358,25 +366,23 @@ function shuffle(list) {
 /* ---------- the two levels ---------- */
 const NAMES = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 const LEVELS = NAMES.length;
-/* Selective attention, levels 1 to 10.
+/* Selective attention, levels 1 to 5. They run from where level 5 of the earlier ten stood to where level 10 stood.
      swap   seconds each image stays in the window
      odd    how many of the 45 spheres take the second color (drawn afresh each segment from this range)
      gap    how far apart the two sphere colors are, as a distance in OKLab; about 0.02 is the smallest
             step an eye can pick out between two patches side by side */
 const SEA = [
-  { swap: 2.4,  odd: [7, 8],   gap: 0.07 },
-  { swap: 2.1,  odd: [8, 9],   gap: 0.063 },
-  { swap: 1.8,  odd: [9, 10],  gap: 0.057 },
-  { swap: 1.5,  odd: [10, 11], gap: 0.051 },
   { swap: 1.3,  odd: [11, 12], gap: 0.046 },
-  { swap: 1.1,  odd: [12, 13], gap: 0.041 },
-  { swap: 0.95, odd: [13, 14], gap: 0.037 },
-  { swap: 0.8,  odd: [14, 15], gap: 0.033 },
-  { swap: 0.7,  odd: [15, 16], gap: 0.03 },
+  { swap: 1.1,  odd: [12, 13], gap: 0.04 },
+  { swap: 0.9,  odd: [14, 15], gap: 0.035 },
+  { swap: 0.75, odd: [15, 16], gap: 0.031 },
   { swap: 0.6,  odd: [16, 17], gap: 0.027 },
 ];
 /* Working memory, levels 1 to 10: how long a phrase is taken from that level's text file, in words */
 const WM = [[10, 11], [12, 13], [14, 15], [16, 17], [18, 20], [21, 23], [24, 26], [27, 29], [30, 33], [34, 37]].map((words) => ({ words }));
+const TOP = { sea: SEA.length, wm: WM.length };              // the highest level of each kind
+/* a selective-attention level saved when there were ten of them, as the nearest of the five: 5 and under is 1, 10 is 5 */
+const seaFromOld = (old) => Math.min(TOP.sea, Math.max(1, Math.round((old - 5) * 4 / 5) + 1));
 const textFile = (level) => 'reftext_' + NAMES[level - 1] + '.txt';
 /* The image categories decide where the images come from, and nothing else: each has a folder of its own name, and
    a session draws from the folders of all the categories chosen, from one to five. */
@@ -398,8 +404,8 @@ function skillStep(recent) {                               // recent: accuracies
   const avg = recent.slice(-SKILL.span).reduce((sum, v) => sum + v, 0) / SKILL.span;
   return avg > SKILL.up ? 1 : avg < SKILL.down ? -1 : 0;
 }
-const levelIn = (n) => Math.min(LEVELS, Math.max(1, n));
-const stepped = (sea, wm, step) => ({ sea: levelIn(sea + step), wm: levelIn(wm + step) });   // a level already at an end stays there
+const levelIn = (n, top = LEVELS) => Math.min(top, Math.max(1, n));
+const stepped = (sea, wm, step) => ({ sea: levelIn(sea + step, TOP.sea), wm: levelIn(wm + step, TOP.wm) });   // a level already at an end stays there
 
 /* ---------- the next picture ---------- */
 /* Every change of picture is a fresh draw from all the pictures of the chosen categories, each picture as likely as any other.
@@ -1552,8 +1558,16 @@ function finish() {
 }
 
 /* ---------- wiring ---------- */
-const remember = () => keep.write('axiom.settings', { kinds: set.kinds, sea: set.sea, wm: set.wm, pics: set.pics, minutes: $('session-min').value, memo: $('memo-sec').value });
-const showLevels = () => { for (const key of ['sea', 'wm']) $(key + '-levels').querySelector('input[value="' + set[key] + '"]').checked = true; };
+const remember = () => keep.write('axiom.settings', { v: 2, kinds: set.kinds, sea: set.sea, wm: set.wm, pics: set.pics, minutes: $('session-min').value, memo: $('memo-sec').value });
+function showLevels() {                                    // each square on its level, with the level written in it
+  for (const key of ['sea', 'wm']) {
+    const box = $(key + '-levels'), input = box.querySelector('input');
+    input.value = set[key];
+    input.setAttribute('aria-valuetext', 'Level ' + set[key] + ' of ' + TOP[key]);
+    box.querySelector('.knob').textContent = set[key];
+    box.style.setProperty('--at', (set[key] - 1) / (TOP[key] - 1));
+  }
+}
 const showKinds = () => $('modes').querySelectorAll('input').forEach((i) => { i.checked = set.kinds.includes(i.value); });
 $('modes').addEventListener('change', (e) => {         // any number of categories from one to five; the last one on stays on
   const on = [...$('modes').querySelectorAll('input:checked')].map((i) => i.value);
@@ -1563,9 +1577,13 @@ $('modes').addEventListener('change', (e) => {         // any number of categori
   survey();
 });
 for (const key of ['sea', 'wm']) {
-  $(key + '-levels').innerHTML = NAMES.map((_, i) => '<label><input type="radio" name="' + key + '" value="' + (i + 1) + '" aria-label="Level ' + (i + 1) + '"><span>' + (i + 1) + '</span></label>').join('');
-  $(key + '-levels').addEventListener('change', (e) => {
+  const box = $(key + '-levels'), top = TOP[key];
+  box.innerHTML = Array.from({ length: top }, (_, i) => '<span class="tick" style="--i:' + i / (top - 1) + '"></span>').join('')
+    + '<input type="range" name="' + key + '" min="1" max="' + top + '" step="1" value="1" aria-label="' + $(key + '-name').textContent + ' level">'
+    + '<span class="knob" aria-hidden="true">1</span>';
+  box.addEventListener('input', (e) => {                   // dragged, tapped or moved with the arrow keys
     set[key] = +e.target.value;
+    showLevels();
     remember();
     survey();
   });
@@ -1616,7 +1634,8 @@ $('again').addEventListener('click', () => { view = 'setup'; draw(); fitTime(); 
 const saved = keep.read('axiom.settings') || {};
 set.kinds = kindsOf(saved.kinds);
 showKinds();
-for (const key of ['sea', 'wm']) if (Number.isInteger(saved[key]) && saved[key] >= 1 && saved[key] <= LEVELS) set[key] = saved[key];
+if (saved.v !== 2 && Number.isInteger(saved.sea)) saved.sea = seaFromOld(saved.sea);   // saved when selective attention had ten levels
+for (const key of ['sea', 'wm']) if (Number.isInteger(saved[key]) && saved[key] >= 1 && saved[key] <= TOP[key]) set[key] = saved[key];
 showLevels();
 set.pics = saved.pics === true;
 $('pics-toggle').querySelector('input[value="' + (set.pics ? 'on' : 'off') + '"]').checked = true;
