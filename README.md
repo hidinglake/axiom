@@ -82,13 +82,21 @@ The first and third rows are the point of the design. The first recall shares a 
 
 A cue list can only know the words it was given. A recall that says the right thing in words the list did not foresee would be marked down unfairly, so a small sentence model (all-MiniLM-L6-v2, about 23 MB, loaded in the background from public CDNs and kept in the browser's cache) also compares the recall with the root phrase as whole sentences.
 
-It can only add. It makes up at most half of what the cues missed:
+It can only add, and only a little. It makes up at most three tenths of what the cues missed:
 
-**comprehension** = share of the cues held + half of the rest × the meaning match
+**comprehension** = share of the cues held + 0.3 × the rest × the meaning match
 
-So a recall that held 60% of the cues and matches the meaning fully scores 80%, and full marks always need every cue. If the model cannot load (offline, blocked, too slow), recalls are graded on the cues alone and the review says the meaning match was not available.
+So a recall that held 60% of the cues and matches the meaning fully scores 72%, and full marks always need every cue. The match itself is read strictly: the model's similarity has to pass 0.5 before it counts for anything and reach 0.9 to count in full, because two sentences on the same subject score well above zero even when they say different things. If the model cannot load (offline, blocked, too slow), recalls are graded on the cues alone and the review says the meaning match was not available.
 
-**Phrase recall comprehension** is the score shown on the review. It is what the skill scalar and the session average use.
+**Phrase recall comprehension** is the score shown on the review. It is what the skill scalar and the session average use. It is shown in the color of its band, with the band's name beside it:
+
+| Comprehension | Band | Color |
+| --- | --- | --- |
+| 0 to 55% | LOW | red |
+| 56 to 75% | MID | yellow |
+| 76 to 100% | HIGH | green |
+
+The session average at the end is shown the same way.
 
 ### Wording accuracy
 
@@ -158,7 +166,7 @@ The text and author are shown as a footnote under the phrase while it is memoriz
 - **A list of the right names and nouns scores well by itself**, about 85% on an average phrase, since details and verbs carry about 15% of the weight between them. If you want sentences to matter more, raise `detail` and `verb` in `WEIGHT`.
 - **A word can hold a cue by accident.** *Wrote* used as a verb of saying will not pass for *writers*, but a recall that happens to use a listed synonym for another reason is credited.
 - **The kinds were assigned by hand**, phrase by phrase, and some calls are arguable (is *the dead* a noun or a detail?). Edit the files where you disagree.
-- **The meaning model's two thresholds are starting values.** A cosine of 0.35 or less counts as no match and 0.85 or more as a full match. They have not been calibrated against real recalls.
+- **The meaning model's settings rest on a handful of real recalls.** A similarity of 0.5 or less counts as no match and 0.9 or more as a full match, and the match can add at most three tenths of what the cues missed. They were tightened from looser first values after recalls that had lost most of their nouns were still scoring in the low 70s. They are `boost`, `low` and `high` in `IDEAS` if they need moving again.
 
 ## Background, and what is not claimed
 
@@ -190,7 +198,7 @@ References
 ## The first screen
 
 - **Memorization window**, in seconds, and **Session duration**, in minutes, side by side at the top, typed straight onto the large numbers. The memorization window is how long each root phrase stays on screen to be memorized.
-- **Cute**, **Odd**, **Gross**, **Sexy**, **Violent**, **Scary** and **Funny**, the seven round buttons, choose the image categories. Any number from one to seven can be on at once; the last one on cannot be switched off. The categories decide which folders the images come from and nothing else.
+- **Cute**, **Odd**, **Grim**, **Sexy** and **Funny**, the five round buttons, choose the image categories. Any number from one to five can be on at once; the last one on cannot be switched off. The categories decide which folders the images come from and nothing else.
 - **Selective attention** and **Working memory**, each 1 to 10, set the difficulty the session starts at.
 - **Images during phrase recall** keeps the image window changing above the text box while the phrase is typed. It is off unless switched on.
 
@@ -203,10 +211,10 @@ While the phrase is memorized, a bar under the image window drains and the secon
 ```
 index.html
 reftext_one.txt … reftext_ten.txt      root phrases for working-memory levels 1 to 10
-cute/  odd/  gross/  sexy/  violent/  scary/  funny/      images for each category
+cute/  odd/  grim/  sexy/  funny/      images for each category
 ```
 
-Each category's images go in the folder of its name. A category whose folder is missing or empty is left out of the session, and the first screen says so.
+Each category's images go in the folder of its name. **Grim** covers violent, gory, gross and frightening images alike; it replaces the earlier Gross, Violent and Scary categories, and a first screen that had any of those on now has Grim on. A category whose folder is missing or empty is left out of the session, and the first screen says so.
 
 ## Updating the content
 
@@ -244,6 +252,7 @@ The numbers behind all of this sit together near the top of the script in `index
 | `SKILL` | the skill scalar: how many recalls, and the two thresholds |
 | `WEIGHT` | what a name, a noun, a detail and a verb are worth |
 | `IDEAS` | how much the meaning model can add, and its two thresholds |
+| `BANDS` | where MID and HIGH begin |
 | `FAMILIES`, `ENDINGS`, `REPORT` | word families, the endings that join two forms of a word, and the verbs of saying |
 | `SCORE` | the weights behind wording accuracy |
 
@@ -263,7 +272,7 @@ The session duration counts only time spent inside segments. The session timer a
 
 ## Adding images
 
-Upload image files (jpg, png, webp, gif, avif, svg) straight into `cute/`, `odd/`, `gross/`, `sexy/`, `violent/`, `scary/` or `funny/`, not into folders inside them. Each image is scaled and cropped from the center to fill the square window.
+Upload image files (jpg, png, webp, gif, avif, svg) straight into `cute/`, `odd/`, `grim/`, `sexy/` or `funny/`, not into folders inside them. Each image is scaled and cropped from the center to fill the square window.
 
 - File names can be anything, except that a name must not begin with an underscore or a dot: GitHub Pages does not publish those files.
 - Keep each folder to 1,000 images or fewer. GitHub lists no more than that for one folder.

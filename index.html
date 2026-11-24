@@ -14,7 +14,7 @@
    of its own: color belongs to the images and the spheres, and in the review to what lost points. */
 :root {
   --paper: #0a0e14; --paper-raised: #121a25; --ink: #e8eef5; --ink-soft: #8c9cb1;
-  --grid: #3b5b70; --grid-faint: #1b2633; --pick: #ffffff; --bad: #ff8b7a; --part: #f0e442;
+  --grid: #3b5b70; --grid-faint: #1b2633; --pick: #ffffff; --bad: #ff8b7a; --part: #f0e442; --good: #6ddc8f;
   --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: "Barlow", "Segoe UI", Helvetica, Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -135,6 +135,11 @@ main { position: relative; flex: 1; min-height: 0; display: grid; place-items: c
 .review { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "said score" "said sums" "said next"; gap: 22px 48px; align-items: start; width: min(100%, 1080px); }
 .mark { grid-area: score; display: flex; flex-direction: column; gap: 8px; }
 .score { font-size: clamp(72px, 9vw, 128px); }
+/* a comprehension score wears its band: low in red, mid in yellow, high in green, with the word beside the number */
+.low { color: var(--bad); }
+.mid { color: var(--part); }
+.high { color: var(--good); }
+.band { margin-left: .3em; font-size: .3em; font-weight: 600; letter-spacing: .1em; }
 .said { grid-area: said; display: flex; flex-direction: column; gap: 26px; min-width: 0; }
 .tally-wrap { grid-area: sums; }
 .go-on { grid-area: next; }
@@ -684,7 +689,7 @@ function tallyOf(result) {
    only add: it makes up part of what the cues missed, so a fair paraphrase in words the file did not foresee
    still earns credit, while holding every cue is what earns full marks. */
 const WEIGHT = { name: 2, noun: 1.5, detail: 0.5, verb: 0.25 };
-const IDEAS = { boost: 0.5, low: 0.35, high: 0.85 };       // the meaning model can make up half of what the cues missed; cosine 0.35 counts as nothing, 0.85 as a full match
+const IDEAS = { boost: 0.3, low: 0.5, high: 0.9 };         // the meaning model can make up three tenths of what the cues missed; cosine 0.5 counts as nothing, 0.9 as a full match
 
 /* The Porter stemmer: the plural, the tense and the common endings of an English word come off, so that fear,
    fears, feared and fearing are one word, and so are moral, morals and morality. */
@@ -855,6 +860,9 @@ function comprehension(checks, meaning, wording) {
   return meaning == null ? wording : meaning;
 }
 const percentOf = (v) => v > 1 - 1e-9 ? 100 : Math.min(99, Math.round(v * 100));
+/* the band a comprehension percentage falls in: low up to 55, mid from 56 to 75, high from 76 */
+const BANDS = { mid: 56, high: 76 };
+const bandOf = (percent) => percent >= BANDS.high ? 'high' : percent >= BANDS.mid ? 'mid' : 'low';
 
 /* ---------- the two sphere colors ---------- */
 /* OKLCH (lightness, chroma, hue in degrees) to an sRGB color; `fits` says whether the screen can show it as asked */
@@ -1455,6 +1463,12 @@ async function submit() {
 
 /* ---------- the review: the root phrase with its cues marked held or lost, the recall, the counts, and a button ---------- */
 const levelsText = (at) => 'SeA ' + at.sea + ', WM ' + at.wm;
+function showScore(el, percent) {                          // the percentage in the color of its band, and the band's name beside it
+  const band = bandOf(percent);
+  el.classList.remove('low', 'mid', 'high');
+  el.classList.add(band);
+  el.innerHTML = '<span class="pct">' + percent + '%</span><span class="band">' + band.toUpperCase() + '</span>';
+}
 const CUE = { held: 'held', loose: 'recalled, but not what it describes', lost: 'lost' };
 const cueState = (c) => c.counts ? 'held' : c.found ? 'loose' : 'lost';
 const cueTag = (c, text) => '<b class="cue ' + (c.kind === 'name' || c.kind === 'noun' ? 'heavy ' : '') + cueState(c) + '" title="' + c.kind + ', ' + CUE[cueState(c)] + '">' + esc(text) + '</b>';
@@ -1468,7 +1482,7 @@ function review(r) {
     text += esc(marks.chars.slice(last, k.at).join('')) + (k.cue < 0 ? esc(word) : cueTag(checks[k.cue], word));
     last = k.end;
   }
-  $('score').textContent = res.percent + '%';
+  showScore($('score'), res.percent);
   $('root-toks').innerHTML = text + esc(marks.chars.slice(last).join(''));
   $('root-toks').classList.toggle('cued', checks.length > 0);
   const told = (state, lead) => { const list = checks.filter((c) => cueState(c) === state).map((c) => c.label); return list.length ? lead + list.join(', ') + '. ' : ''; };
@@ -1521,7 +1535,7 @@ function finish() {
   view = r.rounds.length ? 'results' : 'setup';            // stopped before a round was finished: straight back to the first screen
   if (r.rounds.length) {
     const exact = r.rounds.every((x) => x.result.percent === 100);
-    $('avg-accuracy').textContent = (exact ? 100 : Math.min(99, Math.round(100 * mean(r.rounds.map((x) => x.result.value))))) + '%';
+    showScore($('avg-accuracy'), exact ? 100 : Math.min(99, Math.round(100 * mean(r.rounds.map((x) => x.result.value)))));
     $('avg-recall').textContent = span(mean(r.rounds.map((x) => x.recallMs)));
     $('avg-sphere').textContent = span(mean(r.rounds.map((x) => x.sphereMs)));
     $('ended').hidden = r.sea === r.from.sea && r.wm === r.from.wm;     // said only if the session moved the difficulty
