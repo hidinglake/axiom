@@ -1,0 +1,73 @@
+# Working memory level 3: root phrases of 14 to 15 words.
+# One phrase to a line, then a bar and the text it refers to, a bar and the author (if any), a bar and the cues of the phrase.
+# Cues are separated by semicolons, in the order of the phrase: *a name, a noun, ~a verb, and [a detail] beside the cue it describes.
+# After a comma, other words that count as the same cue. The README says how they are graded.
+# A line that begins with # is a note and is never shown.
+
+# Philosophy
+Epicurus taught that death is nothing to fear, because the dead cannot feel anything. | Letter to Menoeceus | Epicurus | *Epicurus; ~taught; death; ~fear, afraid, dread; ~feel
+Hume argued that reason by itself cannot move us to act; only feeling can. | A Treatise of Human Nature | David Hume | *Hume; ~argued; reason; ~move, motivate; ~act; feeling, passion, emotion, desire
+In his Ethics, Spinoza held that God and nature are two names for one substance. | Ethics | Baruch Spinoza | *Ethics; *Spinoza; ~held; *God; nature; [two] names; substance, identical
+Mill's Utilitarianism judges an action by how much happiness it brings to everyone affected. | Utilitarianism | John Stuart Mill | *Mill; *Utilitarianism; ~judges; action; happiness, pleasure, wellbeing; ~brings; ~affected, greatest
+Boethius wrote The Consolation of Philosophy in a prison cell while awaiting his own execution. | The Consolation of Philosophy | Boethius | *Boethius; ~wrote; *Consolation of Philosophy, Consolation, Philosophy; prison, jail; cell; ~awaiting; execution, death
+In the Euthyphro, Socrates asks whether the gods love piety because it is pious. | Euthyphro | Plato | *Euthyphro; *Socrates; ~asks; gods; ~love, approve; piety [pious, holy, good]
+Aristotle held that friendship based on virtue outlasts friendship based on pleasure or use. | Nicomachean Ethics | Aristotle | *Aristotle; ~held; friendship, friends; ~based; virtue, character, good; ~outlasts, last, endure; pleasure; use, utility
+Leibniz held that nothing happens without a sufficient reason why it happens that way. | Monadology | Gottfried Wilhelm Leibniz | *Leibniz; ~held; ~happens; [sufficient] reason, cause, explanation
+Schopenhauer argued that a blind, striving will lies beneath everything we experience in the world. | The World as Will and Representation | Arthur Schopenhauer | *Schopenhauer; ~argued; [blind] [striving, irrational] will; ~lies; ~experience; world
+Russell argued that philosophy is valuable chiefly for the questions it raises, not its answers. | The Problems of Philosophy | Bertrand Russell | *Russell; ~argued; philosophy [valuable]; questions; ~raises; answers
+Marcus Aurelius reminded himself that the universe is change and life is what we think. | Meditations | Marcus Aurelius | *Marcus Aurelius, Marcus, Aurelius; ~reminded; universe, world; change; life, opinion; ~think
+Montaigne wrote that to study philosophy is to learn how to die without fear. | Essays | Michel de Montaigne | *Montaigne; ~wrote; ~study; philosophy, philosophize; ~learn; ~die; fear
+Hume argued that we cannot prove the sun will rise tomorrow from past experience alone. | An Enquiry Concerning Human Understanding | David Hume | *Hume; ~argued; ~prove, certain, know; sun; ~rise; [tomorrow]; [past] experience, induction
+William James argued that the truth of an idea lies in its practical consequences. | Pragmatism | William James | *William James, William, James, Pragmatism; ~argued; truth; idea, belief; ~lies; [practical] consequences, effects, results, useful
+Beauvoir argued that willing our own freedom means also willing the freedom of others. | The Ethics of Ambiguity | Simone de Beauvoir | *Beauvoir; ~argued; ~willing; freedom; ~means; others
+
+# Ideology
+Montesquieu argued that liberty is safest when the powers of government are kept apart. | The Spirit of the Laws | Montesquieu | *Montesquieu, Spirit; ~argued; liberty, freedom [safest]; powers; government; ~kept; [apart, separate, divided]
+In Mutual Aid, Kropotkin argued that cooperation shapes evolution at least as much as competition. | Mutual Aid | Peter Kropotkin | *Mutual Aid; *Kropotkin; ~argued; cooperation; ~shapes; evolution, evolve; competition, struggle
+Thomas More's Utopia describes a distant island whose people hold all their property in common. | Utopia | Thomas More | *Thomas More; *Utopia; ~describes; [distant] island; people; ~hold; property, goods, possessions [common, shared, communal]
+Wollstonecraft argued that women seem weaker only because they are denied a real education. | A Vindication of the Rights of Woman | Mary Wollstonecraft | *Wollstonecraft, Vindication; ~argued; women [weaker, weak, inferior]; ~seem; ~denied; [real] education, schooling, taught
+Cicero held that a republic belongs to its people and rests on shared law. | On the Republic | Cicero | *Cicero; ~held; republic, commonwealth, state; ~belongs; people, citizens, public; ~rests; [shared] law, justice
+Locke argued that by mixing labor with land, a person makes it his own property. | Second Treatise of Government | John Locke | *Locke; ~argued; ~mixing; labor, labour, work; land, nature; person; ~makes; property, ownership
+Smith suggested that markets, as if by an invisible hand, can serve the public good. | The Wealth of Nations | Adam Smith | *Smith; ~suggested; markets, trade, interest; [invisible] hand; ~serve; [public, society] good
+Hobbes held that covenants without the power of a sword are nothing but empty words. | Leviathan | Thomas Hobbes | *Hobbes; ~held; covenants, promises, contracts, agreements; power, enforce; sword, force; [empty] words, worthless
+Marx and Engels urged the workers of all countries to unite against their rulers. | The Communist Manifesto | Karl Marx and Friedrich Engels | *Marx; *Engels, Manifesto; ~urged; workers, proletarians, working class; countries, world, nations; ~unite, union, together; rulers
+Mill argued that representative government is best because it engages citizens in public affairs. | Considerations on Representative Government | John Stuart Mill | *Mill; ~argued; [representative, democracy, democratic] government [best]; ~engages, involve, participate; citizens, people; [public] affairs
+Hamilton argued that the courts would be the least dangerous branch of the new government. | The Federalist, No. 78 | Alexander Hamilton | *Hamilton, Federalist; ~argued; courts, judiciary, judges; [least] [dangerous, weakest, weak] branch; [new] government
+Proudhon provocatively declared that property is theft when it lets owners live off others. | What Is Property? | Pierre-Joseph Proudhon | *Proudhon; ~declared; property; theft, stealing, robbery; ~lets; owners; ~live, exploit; others
+Emma Goldman argued that true emancipation must begin in the soul of the woman herself. | The Tragedy of Woman's Emancipation | Emma Goldman | *Emma Goldman, Emma, Goldman; ~argued; [true] emancipation, liberation, freedom; ~begin; soul, inner; woman
+Orwell warned that vague political language can make lies sound truthful and murder sound respectable. | Politics and the English Language | George Orwell | *Orwell; ~warned; [vague, unclear, euphemism] [political] language; ~make; lies, lie [truthful]; ~sound; murder, killing [respectable, acceptable]
+Tocqueville warned that equality might lead citizens to withdraw into small private circles of family. | Democracy in America | Alexis de Tocqueville | *Tocqueville; ~warned; equality, democracy; ~lead; citizens; ~withdraw, retreat, isolate, individualism; [small] [private] circles; family
+
+# Religion
+Ecclesiastes says that birth, death, grief and joy each arrive in their own season. | Ecclesiastes | | *Ecclesiastes; ~says; birth, born; death; grief; joy; ~arrive; season, time
+The opening verses of the Dhammapada teach that our thoughts shape what we become. | Dhammapada | | [opening] verses; *Dhammapada, Buddha; ~teach; thoughts, mind; ~shape, make, create, form; ~become
+The Sikh scripture, the Guru Granth Sahib, is itself honored as a living teacher. | Guru Granth Sahib | | [Sikh] scripture, book; *Guru Granth Sahib, Guru, Granth, Sahib; ~honored; [living, eternal] teacher
+The Talmud records centuries of rabbis arguing over how the law should be applied. | The Talmud | | *Talmud; ~records; centuries; rabbis, scholars; ~arguing; law, Torah; ~applied
+Luther's theses of 1517 denied that the church could sell God's forgiveness for money. | Ninety-five Theses | Martin Luther | *Luther; theses [1517]; ~denied; church, pope; ~sell, indulgences; *God; forgiveness, pardon, salvation; money
+The Gita teaches that one's own duty done poorly is better than another's done well. | Bhagavad Gita | | *Gita; ~teaches; duty, dharma [better]; [poorly, badly, imperfectly]; [well]; [another's, others, someone]
+In Genesis, Joseph forgives the brothers who once sold him into slavery in Egypt. | Genesis | | *Genesis; *Joseph; ~forgives; brothers; ~sold; slavery, slave; *Egypt
+Jesus said a camel would pass a needle's eye sooner than the rich enter heaven. | Gospel of Mark | | *Jesus, Mark; ~said; camel; ~pass; needle; eye; [sooner]; rich, wealthy; ~enter; heaven, kingdom, God
+The Quran describes God as nearer to each person than the vein in their neck. | The Quran | | *Quran; ~describes; *God, Allah [nearer, close, closer]; person; vein, jugular; neck
+The Buddha taught that all conditioned things are impermanent and urged followers to strive diligently. | Mahaparinibbana Sutta | | *Buddha; ~taught; [conditioned]; [impermanent, change, pass, transient]; ~urged; followers; ~strive, effort; [diligently, work]
+The prophet Amos demanded that justice roll down like waters and righteousness like a stream. | Book of Amos | | [prophet] *Amos; ~demanded; justice; ~roll; waters; righteousness, righteous; stream, river
+The Tao Te Ching compares ruling a great state to cooking a small fish. | Tao Te Ching | Laozi | *Tao Te Ching, Tao, Te, Ching, Laozi; ~compares; ~ruling, govern; [great] state, country, nation; ~cooking; [small] fish
+In the Guru Granth Sahib, Guru Nanak teaches that there is one creator of all. | Guru Granth Sahib | | *Guru Granth Sahib, Guru, Granth, Sahib; *Nanak, Sikh; ~teaches; creator, God, maker; [one, single]
+The prophet Micah sums up what God requires: do justice, love mercy and walk humbly. | Book of Micah | | [prophet] *Micah; ~sums; *God; ~requires; justice; ~love; mercy, kindness; ~walk; [humbly, humble, humility]
+Paul wrote that faith, hope and love endure, but the greatest of them is love. | First Letter to the Corinthians | Paul the Apostle | *Paul, Corinthians; ~wrote; faith; hope; [greatest] love; ~endure
+
+# Human nature
+Mary Shelley's Frankenstein asks whether a creature turns cruel by nature or through rejection. | Frankenstein | Mary Shelley | *Mary Shelley, Mary, Shelley; *Frankenstein; ~asks; creature, monster [cruel, cruelty, evil, violent]; ~turns; nature, born; rejection, abandoned
+Darwin noted that people everywhere show fear, anger and joy with the same faces. | The Expression of the Emotions in Man and Animals | Charles Darwin | *Darwin; ~noted; people; [everywhere, universal]; ~show; fear; anger; joy, happiness; faces, expressions
+Golding's Lord of the Flies imagines stranded schoolboys on an island sliding into savagery. | Lord of the Flies | William Golding | *Golding; *Lord of the Flies; ~imagines; [stranded] schoolboys, boys, children; island; ~sliding; savagery, savage, barbarism, violence
+Maslow arranged human needs in a hierarchy from food and safety up to personal growth. | A Theory of Human Motivation | Abraham Maslow | *Maslow; ~arranged; [human] needs; hierarchy, pyramid, levels; food, survival, physical, basic; safety, security; [personal] growth, actualization, fulfillment
+Aesop's fables use foxes, crows and wolves to show the vanity and greed of people. | Fables | Aesop | *Aesop; fables; ~use; foxes, animals; crows; wolves; ~show; vanity, pride; greed, greedy; people
+Hobbes listed competition, distrust and the love of glory as the main causes of quarrel. | Leviathan | Thomas Hobbes | *Hobbes; ~listed; competition; distrust, diffidence, suspicion, fear; love; glory, pride, honor; [main] causes; quarrel, conflict, fight, war
+Aristotle argued that anyone able to live alone must be a beast or a god. | Politics | Aristotle | *Aristotle; ~argued; ~live; [alone, solitary, apart]; beast, animal; god
+Hume argued that people are partial to their own families and friends before strangers. | A Treatise of Human Nature | David Hume | *Hume; ~argued; people [partial, prefer, favor, bias]; families, relatives; friends; strangers
+Shakespeare's King Lear learns too late which of his three daughters truly loved him. | King Lear | William Shakespeare | *Shakespeare; *Lear; ~learns; [late]; [three] daughters, Cordelia; ~loved
+Dostoevsky's Raskolnikov believes a great man may kill, then is broken by his own guilt. | Crime and Punishment | Fyodor Dostoevsky | *Dostoevsky, Crime; *Raskolnikov; ~believes; [great, extraordinary, superior] man; ~kill, murder; ~broken; guilt, conscience, remorse
+Freud argued that slips of the tongue reveal wishes we do not admit to ourselves. | The Psychopathology of Everyday Life | Sigmund Freud | *Freud; ~argued; slips, mistakes; tongue; ~reveal, expose; wishes, desires, unconscious, hidden; ~admit
+Tolstoy observed that happy families are all alike, while unhappy families each suffer differently. | Anna Karenina | Leo Tolstoy | *Tolstoy, Anna; ~observed; [happy] [unhappy] families [alike, similar]; ~suffer; [differently]
+Goethe's Faust trades his soul for knowledge and experience, yet is never truly satisfied. | Faust | Johann Wolfgang von Goethe | *Goethe; *Faust; ~trades; soul, devil, Mephistopheles; knowledge; experience; [satisfied, satisfaction, content]
+Don Quixote reads so many tales of chivalry that he takes windmills for giants. | Don Quixote | Miguel de Cervantes | *Don Quixote, Don, Quixote, Cervantes; ~reads; tales, books, romances; chivalry, knights; ~takes; windmills; giants
+Festinger found that people change their beliefs to reduce the discomfort of holding contradictory views. | A Theory of Cognitive Dissonance | Leon Festinger | *Festinger, dissonance; ~found; people; ~change; beliefs, opinions, attitudes; ~reduce; discomfort, tension, unease; ~holding; [contradictory, contradiction, inconsistent, conflicting] views

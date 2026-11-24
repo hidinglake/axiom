@@ -1,0 +1,73 @@
+# Working memory level 1: root phrases of 10 to 11 words.
+# One phrase to a line, then a bar and the text it refers to, a bar and the author (if any), a bar and the cues of the phrase.
+# Cues are separated by semicolons, in the order of the phrase: *a name, a noun, ~a verb, and [a detail] beside the cue it describes.
+# After a comma, other words that count as the same cue. The README says how they are graded.
+# A line that begins with # is a note and is never shown.
+
+# Philosophy
+Plato's Republic asks what justice is and why it matters. | Republic | Plato | *Plato; *Republic; ~asks; justice, fairness; ~matters
+In his Ethics, Aristotle says good character is built by practice. | Nicomachean Ethics | Aristotle | *Ethics; *Aristotle; ~says; [good] character, virtue; ~built; practice, habit, repetition
+Marcus Aurelius wrote his Meditations as private notes to himself. | Meditations | Marcus Aurelius | *Marcus Aurelius, Marcus, Aurelius; ~wrote; *Meditations; [private, personal] notes, journal, diary
+Epictetus taught that we control our judgments, not outside events. | Enchiridion | Epictetus | *Epictetus; ~taught; ~control, power; judgments, opinions, thoughts, perception, attitude; [outside, external, circumstances] events
+Descartes doubted everything he could, then rebuilt knowledge from thought. | Meditations on First Philosophy | René Descartes | *Descartes; ~doubted; ~rebuilt, rebuild, reconstruct, foundation; knowledge; thought, reason, mind
+Socrates claimed his only wisdom was knowing that he knew nothing. | Apology | Plato | *Socrates, Apology, Plato; ~claimed; wisdom; ~knowing; nothing, ignorance, ignorant
+Plato's cave shows prisoners mistaking shadows on a wall for reality. | Republic | Plato | *Plato; cave, Republic; ~shows; prisoners, chained, people; ~mistaking; shadows; wall; reality, real, truth
+Aristotle defined virtue as a mean between two opposite vices. | Nicomachean Ethics | Aristotle | *Aristotle; ~defined; virtue; mean, middle, balance, moderation; [two] [opposite] vices, extremes, excess
+Seneca advised readers to treat every day as a separate life. | Letters to Lucilius | Seneca | *Seneca; ~advised; readers; ~treat; day, daily, today; [separate] life, lifetime
+Locke argued that all our ideas come from experience and reflection. | An Essay Concerning Human Understanding | John Locke | *Locke; ~argued; ideas, knowledge; ~come; experience, senses, sensation; reflection, thinking
+Hume doubted that we ever observe causes, only constant conjunctions. | An Enquiry Concerning Human Understanding | David Hume | *Hume; ~doubted; ~observe; causes, causation; [constant] conjunctions, conjoined, regularity, pattern, together
+Nietzsche praised the free spirit who creates new values for himself. | Thus Spoke Zarathustra | Friedrich Nietzsche | *Nietzsche, Zarathustra; ~praised; [free] spirit; ~creates, invent, make; [new] values
+Epicurus taught that simple pleasures and friendship make life happy. | Letter to Menoeceus | Epicurus | *Epicurus; ~taught; [simple, modest] pleasures; friendship, friends; ~make; life [happy]
+Pascal said the heart has reasons that reason does not know. | Pensées | Blaise Pascal | *Pascal; ~said; heart; reasons; ~know, understand
+Confucius taught: do not impose on others what you dislike. | Analects | Confucius | *Confucius, Analects; ~taught; ~impose, treat, inflict, force; others, people; ~dislike, hate, unwanted, want
+
+# Ideology
+Locke held that governments exist to protect life, liberty and property. | Second Treatise of Government | John Locke | *Locke; ~held; governments, state; ~exist; ~protect, safeguard, defend, preserve; life; liberty, freedom; property
+The Communist Manifesto calls all history a story of class struggle. | The Communist Manifesto | Karl Marx and Friedrich Engels | *Communist Manifesto, Communist, Manifesto, Marx, Engels; ~calls; history; story; class; struggle, conflict, war, fight
+The Declaration of Independence says that governments answer to the people. | Declaration of Independence | Thomas Jefferson | *Declaration of Independence, Declaration, Independence, Jefferson; ~says; governments; ~answer, accountable, serve, consent; people, citizens
+Adam Smith traced a nation's wealth to the division of labor. | The Wealth of Nations | Adam Smith | *Adam Smith, Adam, Smith; ~traced; nation; wealth, prosperity, rich; division, specialization, specialisation; labor, labour, work
+Paine's Common Sense urged the American colonies to break with Britain. | Common Sense | Thomas Paine | *Paine; *Common Sense; ~urged; [American, America] colonies, colonists; ~break, independence, separate, split, leave; *Britain, British, England, king
+Mill defended free speech because silenced opinions may turn out true. | On Liberty | John Stuart Mill | *Mill, Liberty; ~defended; [free] speech, expression; [silenced, censor, suppress, ban] opinions [true, right, correct]; ~turn
+Rousseau claimed that people are born free but live in chains. | The Social Contract | Jean-Jacques Rousseau | *Rousseau, Social Contract; ~claimed; people [free]; ~born; ~live; chains, bondage, enslaved, shackled
+Machiavelli advised rulers to study war above every other art. | The Prince | Niccolò Machiavelli | *Machiavelli, Prince; ~advised; rulers, prince, leader; ~study, focus, master, learn, priority; war, military, warfare; art
+Hamilton argued that a strong executive brings energy to government. | The Federalist, No. 70 | Alexander Hamilton | *Hamilton, Federalist; ~argued; [strong] executive, president; ~brings; energy, energetic, vigor; government
+Marx predicted that capitalism would one day produce its own gravediggers. | The Communist Manifesto | Karl Marx and Friedrich Engels | *Marx; ~predicted; capitalism, capitalist; ~produce; gravediggers, grave, destroy, downfall
+Hobbes described life without a state as solitary, poor and short. | Leviathan | Thomas Hobbes | *Hobbes, Leviathan; ~described; life [solitary, lonely, alone] [poor] [short, brief]; state, government, nature, lawless
+Paine argued that government at its best is a necessary evil. | Common Sense | Thomas Paine | *Paine, Common Sense; ~argued; government; [best]; [necessary] evil
+Plato proposed that philosophers should become the kings of his city. | Republic | Plato | *Plato, Republic; ~proposed; philosophers; ~become; kings, rule, rulers, govern; city
+Wollstonecraft insisted that reason and virtue belong equally to women. | A Vindication of the Rights of Woman | Mary Wollstonecraft | *Wollstonecraft, Vindication; ~insisted; reason, rational; virtue; ~belong; [equally]; women
+Smith warned that merchants meeting together often plot to raise prices. | The Wealth of Nations | Adam Smith | *Smith, Wealth; ~warned; merchants, businessmen, traders, sellers; ~meeting; ~plot, conspire, collude, scheme; ~raise; prices
+
+# Religion
+Genesis opens with God making heaven and earth in six days. | Genesis | | *Genesis, Bible; ~opens; *God; ~making; heaven; earth, world; [six] days, week, 6
+The Buddha taught that craving is the root of suffering. | Setting the Wheel of Dhamma in Motion | the Buddha's first sermon | *Buddha; ~taught; craving, desire, wanting, attachment, greed; root, cause, source, origin; suffering, pain, misery
+Nearly every chapter of the Quran begins by naming God's mercy. | The Quran | | chapter, surah, sura; *Quran, Koran; ~begins; ~naming; *God; mercy, compassion
+The Tao Te Ching praises water for being soft yet strong. | Tao Te Ching | Laozi | *Tao Te Ching, Tao, Te, Ching, Laozi, Daoism, Taoism; ~praises; water [soft, gentle, yielding, weak] [strong, powerful]
+The Psalms are songs of praise, grief, anger and trust. | Psalms | | *Psalms; songs, hymns, poems, prayers; praise; grief, sorrow, lament; anger, rage; trust, faith
+The Ten Commandments forbid murder, theft, adultery and false witness. | Exodus | | *Commandments, Exodus, Moses, Decalogue; ~forbid; murder, kill; theft, steal; adultery; [false, lie, lying, perjury] witness
+In Genesis, Noah builds an ark to survive a great flood. | Genesis | | *Genesis; *Noah; ~builds; ark, boat, ship; ~survive; [great] flood, deluge
+The Buddha taught a middle way between indulgence and harsh denial. | Setting the Wheel of Dhamma in Motion | the Buddha's first sermon | *Buddha; ~taught; [middle] way, balance; indulgence, pleasure, excess; [harsh] denial, asceticism, austerity, deprivation
+The Gospel of John opens by calling Jesus the Word. | Gospel of John | | *Gospel of John, Gospel, John; ~opens; ~calling; *Jesus, Christ; *Word, Logos
+The Quran describes itself as guidance for those who are mindful. | The Quran | | *Quran, Koran; ~describes; guidance, guide; [mindful, righteous, pious, conscious, aware]
+The Tao Te Ching warns that no name captures the Tao. | Tao Te Ching | Laozi | *Tao Te Ching, Tao, Te, Ching, Laozi, Lao, Dao, Way; ~warns; name, words; ~captures, express, define
+In the Gita, the true self can never be killed. | Bhagavad Gita | | *Gita, Krishna; [true] self, soul, atman; ~killed, die, destroyed, slain
+Job loses his wealth and children yet refuses to curse God. | Book of Job | | *Job; ~loses; wealth, possessions, riches; children, family, sons; ~refuses; ~curse, reject, deny, blame; *God
+The Beatitudes call the meek, the merciful and the peacemakers blessed. | Gospel of Matthew | | *Beatitudes, Matthew, Sermon, Jesus; ~call; meek, humble, gentle; merciful; peacemakers, peace; [blessed]
+The book of Ruth tells of a widow's loyalty to Naomi. | Book of Ruth | | *Ruth; ~tells; widow; loyalty, loyal, devotion, faithful; *Naomi
+
+# Human nature
+Hobbes thought people without government would live in constant fear. | Leviathan | Thomas Hobbes | *Hobbes, Leviathan; ~thought; people; government, state, lawless, anarchy, nature; ~live; [constant] fear, afraid, terror, danger, war
+Darwin argued that humans and apes share a common ancestor. | The Descent of Man | Charles Darwin | *Darwin, Descent; ~argued; humans, man, people, mankind; apes, monkeys, primates, chimpanzees; ~share; [common] ancestor, descend, related, evolved
+Freud believed that hidden wishes shape much of what we do. | The Interpretation of Dreams | Sigmund Freud | *Freud; ~believed; [hidden, unconscious, repressed, secret] wishes, desires, urges, drives; ~shape, drive, control, influence, determine, behavior, behaviour, actions
+Mencius taught that every person is born with seeds of goodness. | The Mencius | | *Mencius, Mengzi; ~taught; person; ~born, birth, innate, nature; seeds, sprouts, potential; goodness, kindness
+Montaigne filled his Essays with frank studies of his own habits. | Essays | Michel de Montaigne | *Montaigne; ~filled; *Essays; [frank, honest, candid, open] studies; habits, behavior, behaviour, ways, nature
+Hobbes thought fear and the desire for power drive human conduct. | Leviathan | Thomas Hobbes | *Hobbes; ~thought; fear; desire; power; ~drive, want, seek; [human] conduct
+Hume called reason the servant of our passions, never their master. | A Treatise of Human Nature | David Hume | *Hume; ~called; reason; servant, slave, serve; passions, emotions, feelings, desires; master
+Rousseau believed people are naturally good but corrupted by society. | Emile | Jean-Jacques Rousseau | *Rousseau, Emile; ~believed; people [good, innocent]; [naturally]; ~corrupted, spoiled, ruined; society, civilization, social
+Smith argued that sympathy lets us share the feelings of others. | The Theory of Moral Sentiments | Adam Smith | *Smith, Moral Sentiments; ~argued; sympathy, empathy; ~lets; ~share; feelings, emotions; others
+Freud divided the mind into three parts: id, ego and superego. | The Ego and the Id | Sigmund Freud | *Freud; ~divided; mind; [three] parts; id; ego; superego
+Achilles chooses a short glorious life over a long obscure one. | Iliad | Homer | *Achilles, Iliad, Homer; ~chooses; [short, brief] [glorious, glory, fame, famous] life [long] [obscure, quiet]
+Plato compared the soul to a charioteer driving two horses. | Phaedrus | Plato | *Plato, Phaedrus; ~compared; soul; charioteer, driver; ~driving; [two] horses
+Kant believed humanity was made from crooked timber that resists straightening. | Idea for a Universal History | Immanuel Kant | *Kant; ~believed; humanity, mankind, people; ~made; [crooked, bent, twisted] timber, wood; ~resists; ~straightening, straight, perfect
+Montaigne asked himself what he knew and found little certain. | Essays | Michel de Montaigne | *Montaigne, Essays; ~asked; ~knew; ~found; [certain, uncertain, doubt]
+Ovid's Metamorphoses shows people transformed by love, pride and desire. | Metamorphoses | Ovid | *Ovid; *Metamorphoses; ~shows; people; ~transformed, change, metamorphosis; love; pride; desire

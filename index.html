@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axiom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;700&display=swap">
+<style>
+/* layout: one screen at a time, each holding only what that step needs. First the image categories, the two levels, the
+   session length and Start. Then a segment, step by step: the image window with the phrase under it, the spheres, the box the phrase is
+   rewritten in (under the image window too, if images are set to run during recall), and the review, which sets the
+   root phrase against the rewrite, shows what each word and mark earned and waits for the next segment to be asked for. After the last segment, the three averages. The page has no color
+   of its own: color belongs to the images and the spheres, and in the review to what lost points. */
+:root {
+  --paper: #0a0e14; --paper-raised: #121a25; --ink: #e8eef5; --ink-soft: #8c9cb1;
+  --grid: #3b5b70; --grid-faint: #1b2633; --pick: #ffffff; --bad: #ff8b7a; --part: #f0e442;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "Barlow", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --phrase-size: clamp(16px, .9vw + 9px, 21px);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: none; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+[hidden] { display: none !important; }
+main { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; padding: 28px 20px; overflow: auto; }
+
+/* ---- before a session: the image categories, the two levels, the session length, Start ---- */
+.setup { display: flex; flex-direction: column; gap: 28px; width: min(100%, 380px); }
+/* the image categories: five round buttons in a row, each a symbol over its name; any number from one to five can be
+   on at once, and those that are on are filled */
+.modes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.mode { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.mode input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.disc { display: grid; place-items: center; width: min(100%, 56px); aspect-ratio: 1; border: 1.5px solid var(--ink); border-radius: 50%; }
+.disc svg { display: block; width: 68%; height: auto; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.disc svg .solid { fill: currentColor; stroke: none; }
+.disc svg text { fill: currentColor; stroke: none; font-family: var(--font-mono); font-weight: 700; font-size: 8.5px; letter-spacing: -.2px; }
+.mode .name { font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: .04em; color: var(--ink-soft); }
+.mode input:checked ~ .disc { background: var(--ink); color: var(--paper); }
+.mode input:checked ~ .name { color: var(--ink); }
+.mode input:focus-visible ~ .disc { outline: 2px solid var(--pick); outline-offset: 3px; }
+.param { display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); }
+.levels { display: grid; grid-template-columns: repeat(10, 1fr); border: 1.5px solid var(--ink); }
+.levels label { position: relative; display: block; }
+.levels label + label { border-left: 1.5px solid var(--ink); }
+.levels input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.levels span { display: block; padding: 9px 0; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 18px; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.levels input:checked + span { background: var(--ink); color: var(--paper); }
+.levels.two { grid-template-columns: repeat(2, 1fr); }     /* the same boxes, for a setting that is only off or on */
+.levels.two span { font-size: 16px; letter-spacing: .12em; text-transform: uppercase; }
+.levels input:focus-visible + span { outline: 2px solid var(--pick); outline-offset: 2px; }
+/* the two times, side by side at the top: large bold digits typed straight onto the page with no box around them,
+   each followed by its unit. A field is exactly as wide as what is typed in it (fitTime below). */
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 16px; }
+.pair .param { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 10px; }   /* the two names on one line, the two numbers on the next */
+.pair .param .eyebrow { align-self: end; }
+.mins.big { align-items: baseline; gap: 6px; min-width: 0; }
+.mins.big input { flex: none; width: 2ch; min-width: 1ch; max-width: 100%; padding: 0; text-align: left; background: none; border: 0; border-bottom: 1.5px solid transparent; border-radius: 0;
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(50px, 15vw, 76px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); -moz-appearance: textfield; appearance: textfield; }
+.mins.big input::-webkit-outer-spin-button, .mins.big input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.mins.big input:hover { border-bottom-color: var(--grid); }
+.mins.big input:focus { outline: none; border-bottom-color: var(--ink-soft); }
+.mins.big input:focus-visible { outline: none; border-bottom-color: var(--pick); }
+.mins.big span { font-family: var(--font-display); font-weight: 600; font-size: clamp(20px, 6vw, 26px); color: var(--ink-soft); }
+.mins { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-soft); }
+.mins input { width: 88px; padding: 9px 10px; text-align: right; background: var(--paper-raised); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 0; font-family: var(--font-mono); font-size: 16px; }
+.act { padding: 8px 14px; border: 1.5px solid var(--ink); font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+.act.main { background: var(--ink); color: var(--paper); }
+.setup .act { padding: 12px 14px; font-size: 18px; }
+@media (hover: hover) {
+  .act:hover { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+  .act.main:hover { background: color-mix(in srgb, var(--ink) 82%, var(--paper)); }
+  .levels input:hover:not(:checked) + span { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+  .mode input:hover:not(:checked) ~ .disc { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+  .quit:hover { color: var(--ink); }
+}
+/* said only when the page cannot find its images or its text */
+.note { font-size: 13.5px; color: var(--ink-soft); }
+.note:empty { display: none; }
+
+/* ---- during a session: the one way out, in the corner ---- */
+.quit { position: absolute; top: 12px; right: 14px; padding: 8px 10px; font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); }
+.wait { font-size: 15px; color: var(--ink-soft); }
+
+/* step 1: the image window, a square each picture is cropped and scaled to fill; under it the time left, as a bar
+   draining with the seconds counted down beside it; the phrase under that, and under the phrase its footnote. Phrase
+   and footnote together keep room for four lines and the footnote, so the window sits in the same place every
+   segment. The window is as large as leaves room for all of that and for the strip at the foot of the screen. */
+.memo { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.frame { width: min(100%, 560px, max(200px, 100vh - 6.2 * var(--phrase-size) - 204px)); width: min(100%, 560px, max(200px, 100dvh - 6.2 * var(--phrase-size) - 204px)); }
+.window { aspect-ratio: 1; overflow: hidden; background: var(--paper-raised); border: 1px solid var(--grid); user-select: none; -webkit-user-select: none; }
+.window img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.timing { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.fuse { flex: 1; height: 3px; background: var(--grid-faint); }
+.fuse i { display: block; height: 100%; background: var(--ink); transform-origin: 0 50%; }
+.count { min-width: 4ch; font-family: var(--font-mono); font-weight: 500; font-size: 14px; line-height: 1; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; user-select: none; -webkit-user-select: none; }
+.phrase, .reply textarea { font-family: var(--font-mono); font-weight: 500; font-size: var(--phrase-size); line-height: 1.55; }
+.told { display: flex; flex-direction: column; align-items: center; width: 100%; min-height: calc(6.2 * var(--phrase-size) + 48px); margin-top: 18px; }
+.phrase { max-width: min(100%, 44em); text-align: center; text-wrap: balance; user-select: none; -webkit-user-select: none; }
+/* the footnote: the text a phrase refers to and its author, set off from the phrase by a short rule as a footnote is
+   in print; it is not part of what has to be rewritten */
+.source { font-size: 15px; line-height: 1.35; color: var(--ink-soft); }
+.source cite { font-style: italic; }
+.memo .source { position: relative; max-width: min(100%, 44em); margin-top: 12px; padding-top: 11px; text-align: center; text-wrap: balance; user-select: none; -webkit-user-select: none; }
+.memo .source::before { content: ""; position: absolute; top: 0; left: 50%; width: 44px; margin-left: -22px; border-top: 1px solid var(--grid); }
+
+/* step 2: the spheres, nine across and five down; each button is a whole cell, so the press need not be exact */
+.field { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(5, 1fr); aspect-ratio: 9 / 5; width: min(100%, 900px, (100vh - 150px) * 9 / 5); width: min(100%, 900px, (100dvh - 150px) * 9 / 5); user-select: none; -webkit-user-select: none; }
+.orb { display: grid; place-items: center; min-width: 0; min-height: 0; touch-action: manipulation; }
+.ball { width: 60%; aspect-ratio: 1; border-radius: 50%; box-shadow: 0 2px 5px rgb(0 0 0 / .45); }
+.orb.a .ball { background: radial-gradient(circle at 36% 30%, var(--a-hi), var(--a-mid) 48%, var(--a-lo)); }
+.orb.b .ball { background: radial-gradient(circle at 36% 30%, var(--b-hi), var(--b-mid) 48%, var(--b-lo)); }
+.orb:focus-visible { outline: none; }
+.orb:focus-visible .ball { outline: 2px dotted var(--ink-soft); outline-offset: 5px; }
+.orb.picked .ball { outline: 2px solid var(--pick); outline-offset: 3px; }
+.orb.off .ball { outline: 2px dashed var(--bad); outline-offset: 3px; animation: nope .4s ease; }
+@keyframes nope { 20% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 80% { transform: translateX(-2px); } }
+
+/* step 3: the box, alone on the screen, or under the image window when images are set to run during recall too */
+.reply { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: min(100%, 760px); }
+.frame:not([hidden]) ~ .reply { margin-top: 18px; }
+.reply textarea { display: block; width: 100%; height: 5.4em; max-height: 60vh; resize: none; padding: 10px 12px; background: var(--paper-raised); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 0; }
+.reply textarea:focus-visible { outline-offset: -2px; }
+
+/* the review of a segment: both phrases on the left, the root phrase with its cues marked held or lost; on the right
+   the comprehension, how many cues of each kind were held and the button that starts the next segment */
+.score, .figures dd { font-family: var(--font-display); font-weight: 700; line-height: .92; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.review { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "said score" "said sums" "said next"; gap: 22px 48px; align-items: start; width: min(100%, 1080px); }
+.mark { grid-area: score; display: flex; flex-direction: column; gap: 8px; }
+.score { font-size: clamp(72px, 9vw, 128px); }
+.said { grid-area: said; display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+.tally-wrap { grid-area: sums; }
+.go-on { grid-area: next; }
+.go-on .act { width: 100%; padding: 12px 14px; font-size: 18px; }
+.clock { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+/* said only when the difficulty has just moved: which way, and the two levels it moved to */
+.where { font-family: var(--font-mono); font-weight: 500; font-size: 15px; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.shown { display: flex; flex-direction: column; gap: 10px; }
+.shown .eyebrow { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.eyebrow .aside { font-family: var(--font-mono); font-weight: 400; font-size: 12.5px; letter-spacing: 0; text-transform: none; }
+.toks { font-family: var(--font-mono); font-weight: 500; font-size: clamp(15px, .5vw + 10px, 18px); line-height: 1.25; }
+.unit { display: inline-block; white-space: nowrap; }
+.tok { display: inline-block; margin: 0 1px 12px; text-align: center; vertical-align: top; }
+.tok b, .tok i { display: block; font-weight: 500; font-style: normal; }
+.tok b { min-width: 1.2ch; }
+.tok i { margin-top: 4px; font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.none { color: var(--ink-soft); }
+.said-text { font-family: var(--font-mono); font-weight: 500; font-size: clamp(15px, .5vw + 10px, 18px); line-height: 1.5; }
+.ideas { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 14px; font-family: var(--font-mono); font-size: 14px; line-height: 1.3; }
+.ideas:empty { display: none; }
+/* The root phrase with its cues marked. Words that are not cues stand back; a cue held is bright, and bold when it
+   is a name or a noun; a cue lost is struck through in red; a detail recalled without what it describes is yellow. */
+.said-text.cued { color: var(--ink-soft); }
+.cue { font-weight: 500; color: var(--ink); }
+.cue.heavy { font-weight: 700; }
+.cue.loose { color: var(--part); text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.heard { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* said to a screen reader, not shown */
+.cue.lost { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.shown .source { margin-top: -6px; }
+/* how a token fared is carried by its mark as well as its color, and by the points under it */
+.s-case, .s-near, .s-moved, .tok i.s-case, .tok i.s-near, .tok i.s-moved { color: var(--part); }
+.s-gone, .s-alone, .s-extra, .tok i.s-gone, .tok i.s-alone, .tok i.s-extra { color: var(--bad); }
+b.s-case, b.s-near, b.s-moved { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+b.s-near { text-decoration-style: wavy; text-decoration-thickness: 1.5px; }
+b.s-moved { text-decoration-style: dotted; }
+b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
+.tally { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 13.5px; }
+.tally td:first-child { white-space: nowrap; }
+.tally td { padding: 6px 0; border-top: 1px solid var(--grid-faint); vertical-align: baseline; }
+.tally b { font-weight: 500; }
+.tally tr:last-child td { border-bottom: 1px solid var(--grid-faint); }
+.tally td:last-child { padding-left: 14px; text-align: right; white-space: nowrap; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.results { display: flex; flex-direction: column; align-items: center; gap: clamp(36px, 8vh, 72px); width: 100%; }
+.figures { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 30px clamp(30px, 7vw, 96px); text-align: center; }
+.figures div { display: flex; flex-direction: column-reverse; gap: 8px; }                /* the figure above its name */
+.figures dd { font-size: clamp(44px, 7vw, 84px); }
+.figures .hero dd { font-size: clamp(88px, 16vw, 190px); }
+.wrap-up { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.wrap-up .clock { margin: 0; gap: 16px; }
+
+/* ---- during a session, at the foot of the screen: the difficulty in force and, beside it, the session timer ---- */
+.status { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 40px; padding: 6px 20px 14px; }
+.stat { display: flex; align-items: baseline; gap: 10px; }
+.stat .eyebrow { font-size: 13px; }
+
+/* a narrow window stacks the review in reading order, and keeps the button for the next segment in reach at the foot */
+@media (max-width: 900px) {
+  .review { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "score" "said" "sums" "next"; }
+  .go-on { position: sticky; bottom: -28px; padding: 12px 0 28px; background: var(--paper); }
+}
+/* a short window: the first screen draws in a little, so that Start stays in view */
+@media (max-height: 700px) {
+  .setup { gap: 20px; }
+  .disc { width: min(100%, 48px); }
+}
+/* a phone: the ten levels in two rows of five, so each box is wide enough for a thumb */
+@media (max-width: 430px) {
+  .levels:not(.two) { grid-template-columns: repeat(5, 1fr); }
+  .levels:not(.two) label:nth-child(6) { border-left: 0; }
+  .levels:not(.two) label:nth-child(n+6) { border-top: 1.5px solid var(--ink); }
+}
+@media (max-width: 560px) {
+  main { padding: 20px 14px; }
+  .go-on { bottom: -20px; padding-bottom: 20px; }
+  :root { --phrase-size: 16px; }                 /* 16px, so a phone does not zoom the page when the box is tapped */
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="setup" id="setup">
+    <div class="pair">
+      <div class="param">
+        <label class="eyebrow" for="memo-sec">Memorization window</label>
+        <div class="mins big"><input type="number" id="memo-sec" min="1" max="300" step="any" value="15" inputmode="decimal"><span>s</span></div>
+      </div>
+      <div class="param">
+        <label class="eyebrow" for="session-min">Session duration</label>
+        <div class="mins big"><input type="number" id="session-min" min="0.1" max="999" step="any" value="5" inputmode="decimal"><span>min</span></div>
+      </div>
+    </div>
+    <div class="modes" id="modes" role="group" aria-label="Image categories">
+      <label class="mode">
+        <input type="checkbox" name="kind" value="cute" checked>
+        <span class="disc"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 11.5c0-3 2.3-5 5-5s5 2 5 5v6.5c0 4-2.3 6.5-5 6.5s-5-2.5-5-6.5z"/><path class="solid" d="M11.4 9.4C9 8.2 5 9.3 4.4 13.4c-.4 3 1.2 6.1 3.3 6.1 1.5 0 2.7-2 3.3-4.1z"/><path class="solid" d="M20.6 9.4c2.4-1.2 6.4-.1 7 4 .4 3-1.2 6.1-3.3 6.1-1.5 0-2.7-2-3.3-4.1z"/><circle class="solid" cx="13.8" cy="14.6" r="1.2"/><circle class="solid" cx="18.2" cy="14.6" r="1.2"/><ellipse class="solid" cx="16" cy="19" rx="1.9" ry="1.3"/><path d="M14.4 21.6c.9.9 2.3.9 3.2 0"/></svg></span>
+        <span class="name">Cute</span>
+      </label>
+      <label class="mode">
+        <input type="checkbox" name="kind" value="odd">
+        <span class="disc"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.5L29 27H3z"/><text x="16" y="23.6" text-anchor="middle">333</text></svg></span>
+        <span class="name">Odd</span>
+      </label>
+      <label class="mode">
+        <input type="checkbox" name="kind" value="grim">
+        <span class="disc"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.6C9.6 3.6 5.2 8 5.2 13.8c0 3.2 1.4 5.6 3.6 7V26c0 1.1.9 2 2 2h10.4c1.1 0 2-.9 2-2v-5.2c2.2-1.4 3.6-3.8 3.6-7C26.8 8 22.4 3.6 16 3.6z"/><path class="solid" d="M8.8 15.2c0-2 1.4-3.2 3.3-3.2s3.1 1.3 3 3c-.1 1.8-1.5 3.1-3.3 3.1-1.8 0-3-1.2-3-2.9z"/><path class="solid" d="M23.2 15.2c0-2-1.4-3.2-3.3-3.2s-3.1 1.3-3 3c.1 1.8 1.5 3.1 3.3 3.1 1.8 0 3-1.2 3-2.9z"/><path class="solid" d="M16 19l1.6 3h-3.2z"/><path d="M12.8 24.2V28M16 24.2V28M19.2 24.2V28"/></svg></span>
+        <span class="name">Grim</span>
+      </label>
+      <label class="mode">
+        <input type="checkbox" name="kind" value="sexy">
+        <span class="disc"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2.8 22L9.8 10.8 13.6 22c-3.6 1.6-7.2 1.6-10.8 0z"/><path d="M29.2 22L22.2 10.8 18.4 22c3.6 1.6 7.2 1.6 10.8 0z"/><path d="M13.2 14.4c1.6 1.4 2.6 3.4 2.8 5.8M18.8 14.4c-1.6 1.4-2.6 3.4-2.8 5.8M13.6 22h4.8M9.8 10.8L7.6 4.2M22.2 10.8L24.4 4.2M2.8 22l-1.6.7M29.2 22l1.6.7"/></svg></span>
+        <span class="name">Sexy</span>
+      </label>
+      <label class="mode">
+        <input type="checkbox" name="kind" value="funny">
+        <span class="disc"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5.5 5.5c6.6-2 14.4-2 21 0 0 9.4-2.3 20.6-10.5 23C7.8 26.1 5.5 14.9 5.5 5.5z"/><path d="M9.3 13.2c1.2-1.7 3.4-1.7 4.6 0M18.1 13.2c1.2-1.7 3.4-1.7 4.6 0"/><path class="solid" d="M9.6 17.6h12.8c-.5 4.3-3.1 6.9-6.4 6.9s-5.9-2.6-6.4-6.9z"/></svg></span>
+        <span class="name">Funny</span>
+      </label>
+    </div>
+    <div class="param" role="group" aria-labelledby="sea-name">
+      <span class="eyebrow" id="sea-name">Selective attention</span>
+      <div class="levels" id="sea-levels"></div>
+    </div>
+    <div class="param" role="group" aria-labelledby="wm-name">
+      <span class="eyebrow" id="wm-name">Working memory</span>
+      <div class="levels" id="wm-levels"></div>
+    </div>
+    <div class="param" role="group" aria-labelledby="pics-name">
+      <span class="eyebrow" id="pics-name">Images during phrase recall</span>
+      <div class="levels two" id="pics-toggle">
+        <label><input type="radio" name="pics" value="off" checked><span>Off</span></label>
+        <label><input type="radio" name="pics" value="on"><span>On</span></label>
+      </div>
+    </div>
+    <button class="act main" id="go" type="button">Start</button>
+    <p class="note" id="note" role="status"></p>
+  </div>
+
+  <button class="quit" id="stop" type="button" hidden>Stop</button>
+  <p class="wait" id="wait" hidden>Loading</p>
+  <div class="memo" id="memo" hidden>
+    <div class="frame" id="frame">
+      <div class="window" id="window" aria-hidden="true"></div>
+      <div class="timing" id="fuse-track">
+        <div class="fuse" aria-hidden="true"><i id="fuse"></i></div>
+        <span class="count" id="count" role="timer" aria-label="Seconds left to memorize"></span>
+      </div>
+    </div>
+    <div class="told" id="told">
+      <p class="phrase" id="phrase"></p>
+      <p class="source" id="source" hidden></p>
+    </div>
+    <div class="reply" id="reply" hidden>
+      <textarea id="answer" aria-label="Rewrite the phrase" placeholder="Rewrite the phrase" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+      <button class="act main" id="submit" type="button">Submit</button>
+    </div>
+  </div>
+  <div class="field" id="field" role="group" aria-label="Spheres. Select every sphere of the less common color." hidden></div>
+  <div class="review" id="review" hidden>
+    <div class="mark">
+      <p class="score" id="score" role="status" aria-label="Phrase recall comprehension"></p>
+      <p class="eyebrow">Phrase recall comprehension</p>
+    </div>
+    <div class="said">
+      <section class="shown">
+        <h2 class="eyebrow"><span>Root phrase</span><span class="aside" id="root-worth"></span></h2>
+        <p class="said-text" id="root-toks"></p>
+        <p class="heard" id="root-heard"></p>
+        <p class="source" id="root-source" hidden></p>
+      </section>
+      <section class="shown">
+        <h2 class="eyebrow"><span>Your phrase</span><span class="aside" id="yours-worth"></span></h2>
+        <p class="said-text" id="yours-toks"></p>
+      </section>
+    </div>
+    <div class="tally-wrap">
+      <p class="ideas" id="ideas"></p>
+      <table class="tally"><tbody id="tally"></tbody></table>
+    </div>
+    <div class="go-on">
+      <p class="clock" id="shift" role="status" hidden><span class="eyebrow" id="shift-way"></span><span class="where" id="shift-to"></span></p>
+      <button class="act main" id="next" type="button">Start next segment</button>
+    </div>
+  </div>
+  <div class="results" id="results" hidden>
+    <dl class="figures">
+      <div class="hero"><dt class="eyebrow">Average phrase recall comprehension</dt><dd id="avg-accuracy"></dd></div>
+      <div><dt class="eyebrow">Average phrase recall time</dt><dd id="avg-recall"></dd></div>
+      <div><dt class="eyebrow">Average sphere time</dt><dd id="avg-sphere"></dd></div>
+    </dl>
+    <div class="wrap-up">
+      <p class="clock" id="ended" hidden><span class="eyebrow">Difficulty now</span><span class="where" id="ended-at"></span></p>
+      <button class="act" id="again" type="button">New session</button>
+    </div>
+  </div>
+</main>
+<footer class="status" id="status" hidden>
+  <p class="stat"><span class="eyebrow">Level</span><span class="where" id="status-level"></span></p>
+  <p class="stat"><span class="eyebrow" id="status-clock">Session</span><span class="where" id="status-time" role="timer"></span></p>
+</footer>
+
+<script>
+(function () {
+'use strict';
+/*LOGIC-START*/
+const rand = Math.random;
+const randInt = (n) => Math.floor(rand() * n);
+const coin = () => rand() < 0.5;
+function shuffle(list) {
+  for (let i = list.length - 1; i > 0; i--) { const j = randInt(i + 1); [list[i], list[j]] = [list[j], list[i]]; }
+  return list;
+}
+
+/* ---------- the two levels ---------- */
+const NAMES = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const LEVELS = NAMES.length;
+/* Selective attention, levels 1 to 10.
+     swap   seconds each image stays in the window
+     odd    how many of the 45 spheres take the second color (drawn afresh each segment from this range)
+     gap    how far apart the two sphere colors are, as a distance in OKLab; about 0.02 is the smallest
+            step an eye can pick out between two patches side by side */
+const SEA = [
+  { swap: 2.4,  odd: [7, 8],   gap: 0.07 },
+  { swap: 2.1,  odd: [8, 9],   gap: 0.063 },
+  { swap: 1.8,  odd: [9, 10],  gap: 0.057 },
+  { swap: 1.5,  odd: [10, 11], gap: 0.051 },
+  { swap: 1.3,  odd: [11, 12], gap: 0.046 },
+  { swap: 1.1,  odd: [12, 13], gap: 0.041 },
+  { swap: 0.95, odd: [13, 14], gap: 0.037 },
+  { swap: 0.8,  odd: [14, 15], gap: 0.033 },
+  { swap: 0.7,  odd: [15, 16], gap: 0.03 },
+  { swap: 0.6,  odd: [16, 17], gap: 0.027 },
+];
+/* Working memory, levels 1 to 10: how long a phrase is taken from that level's text file, in words */
+const WM = [[10, 11], [12, 13], [14, 15], [16, 17], [18, 20], [21, 23], [24, 26], [27, 29], [30, 33], [34, 37]].map((words) => ({ words }));
+const textFile = (level) => 'reftext_' + NAMES[level - 1] + '.txt';
+/* The image categories decide where the images come from, and nothing else: each has a folder of its own name, and
+   a session draws from the folders of all the categories chosen, from one to five. */
+const MODES = ['cute', 'odd', 'grim', 'sexy', 'funny'];
+const MERGED = { gross: 'grim', violent: 'grim', scary: 'grim', disturbing: 'grim' };   // categories folded into another; a saved choice of one carries over
+const imageFolder = (mode) => MODES.includes(mode) ? mode : MODES[0];
+const kindsOf = (list) => { const named = Array.isArray(list) ? list.map((k) => MERGED[k] || k) : []; const kept = MODES.filter((k) => named.includes(k)); return kept.length ? kept : [MODES[0]]; };
+/* time to memorize: set by the player on the first screen, in seconds, the same for every segment of a session */
+const MEMO = { min: 1, max: 300, start: 15 };
+const memorizeSeconds = (typed) => { const v = parseFloat(typed); return isFinite(v) && v >= MEMO.min ? Math.min(v, MEMO.max) : 0; };
+
+/* ---------- the skill scalar: difficulty follows the recalls ---------- */
+/* Once `span` recalls have been made at the current difficulty, the average comprehension of the latest `span` decides:
+   above `up` percent both levels go up one, below `down` percent both go down one, and between the two nothing
+   moves. After a move the count starts again, so every difficulty is judged on recalls made at that difficulty. */
+const SKILL = { span: 3, up: 80, down: 60 };
+function skillStep(recent) {                               // recent: accuracies in percent at this difficulty, oldest first
+  if (recent.length < SKILL.span) return 0;
+  const avg = recent.slice(-SKILL.span).reduce((sum, v) => sum + v, 0) / SKILL.span;
+  return avg > SKILL.up ? 1 : avg < SKILL.down ? -1 : 0;
+}
+const levelIn = (n) => Math.min(LEVELS, Math.max(1, n));
+const stepped = (sea, wm, step) => ({ sea: levelIn(sea + step), wm: levelIn(wm + step) });   // a level already at an end stays there
+
+/* ---------- the next picture ---------- */
+/* Every change of picture is a fresh draw from all the pictures of the chosen categories, each picture as likely as any other.
+   The one thing a draw may not be is a picture that has only just been shown: never the one before it, and in a
+   folder with pictures to spare, none of the last few. `trail` is the run of pictures so far, the latest last. */
+const RECENT = 4;
+function drawPicture(pool, trail) {
+  if (pool.length < 2) return pool.length ? pool[0] : null;
+  const gap = Math.max(1, Math.min(RECENT, Math.floor((pool.length - 1) / 2)));   // at least half the folder is always open to the draw
+  const late = new Set(trail.slice(-gap));
+  const open = pool.filter((u) => !late.has(u));
+  return open[randInt(open.length)];
+}
+
+/* ---------- reading a phrase as words and punctuation marks ---------- */
+/* Characters that look alike or cannot be typed on a plain keyboard count as their plain form: curly quotes
+   as straight ones, a long dash as a spaced hyphen, the one-character ellipsis as three points. */
+function tidy(text) {
+  return String(text).normalize('NFC')
+    .replace(/[‘’‚‛′`´]/g, "'")
+    .replace(/[“”„‟″«»]/g, '"')
+    .replace(/[‐‑]/g, '-')
+    .replace(/\s*(?:[‒-―−]|-{2,})\s*/g, ' - ')
+    .replace(/…/g, '...')
+    .replace(/[\s  -​  　]+/g, ' ')
+    .trim();
+}
+const isLetter = (ch) => ch !== undefined && /[\p{L}\p{N}]/u.test(ch);
+const isDigit = (ch) => ch !== undefined && /\p{N}/u.test(ch);
+/* A word is a run of letters and digits; an apostrophe stays inside it (don't, baker's) and so does the point or
+   comma inside a number (3.5, 1,000). Every other mark is a token of its own, the hyphen of sixty-six included. */
+function tokens(text) {
+  const chars = Array.from(tidy(text)), list = [];
+  let i = 0;
+  while (i < chars.length) {
+    const ch = chars[i];
+    if (ch === ' ') { i++; continue; }
+    let j = i + 1, w = false;
+    if (isLetter(ch)) {
+      w = true;
+      while (j < chars.length) {
+        if (isLetter(chars[j])) j++;
+        else if (chars[j] === "'" && isLetter(chars[j + 1])) j += 2;
+        else if ((chars[j] === '.' || chars[j] === ',') && isDigit(chars[j - 1]) && isDigit(chars[j + 1])) j += 2;
+        else break;
+      }
+    } else if (ch === '.') {
+      while (chars[j] === '.') j++;                       // a run of points is one mark
+    }
+    const t = chars.slice(i, j).join('');
+    list.push({ w, t: !w && t.length > 1 ? '...' : t, at: i, end: j, s: '' });
+    i = j;
+  }
+  return { chars, list };
+}
+const wordCount = (text) => tokens(text).list.filter((k) => k.w).length;
+
+/* ---------- phrases: cut a text file into sentences and keep the ones the level asks for ---------- */
+const TITLES = /(?:^|[\s("'])(?:Mr|Mrs|Ms|Dr|Prof|St|Mt|Sr|Jr|vs|[\p{Lu}])\.["')\]]*$/u;
+/* A line of a text file can say what its phrase refers to: after the phrase a bar and the title of the text, and
+   after a second bar its author.
+       Hobbes thought people without government would live in constant fear. | Leviathan | Thomas Hobbes
+   Title and author travel with the phrase as { s, title, author } and are shown under it as a footnote; they are
+   never part of what has to be rewritten. After a third bar come the cues of the phrase, which the grading reads
+   (see ideasOf); they travel as `ideas`. A line that starts with # is a note for whoever keeps the file (a
+   heading, a reminder) and is never shown. */
+function entriesOf(text) {
+  const rows = String(text).replace(/^﻿/, '').replace(/\r\n?/g, '\n').split('\n').map((l) => {
+    const line = l.trim(), bar = line.indexOf('|');
+    if (line[0] === '#') return { body: '', note: '' };
+    return bar < 0 ? { body: line, note: '' } : { body: line.slice(0, bar).trim(), note: line.slice(bar + 1) };
+  });
+  const full = rows.filter((r) => r.body);
+  if (!full.length) return [];
+  const share = (test) => full.filter((r) => test.test(r.body)).length / full.length;
+  /* Hard-wrapped prose breaks its lines mid-sentence: there, lines are joined back into paragraphs first.
+     Otherwise each line stands alone, whether it holds one sentence, a paragraph or a phrase with no full stop. */
+  const wrapped = share(/[.!?…]["'”’)\]]*$/) < 0.5 && share(/^["'“‘(\[]?[\p{Lu}\p{N}]/u) < 0.8;
+  let blocks = full;
+  if (wrapped) {
+    blocks = [];
+    let open = null;
+    for (const r of rows) {
+      if (!r.body) { open = null; continue; }
+      if (!open) blocks.push(open = { body: r.body, note: r.note });
+      else { open.body += ' ' + r.body; open.note = open.note || r.note; }
+    }
+  }
+  const out = [], seen = new Set();
+  for (const block of blocks) {
+    const body = block.body.replace(/\s+/g, ' ').trim();
+    const [title = '', author = '', ideas = ''] = block.note.split('|').map((x) => x.replace(/\s+/g, ' ').trim());
+    const edge = /[.!?…]+["'”’)\]]*\s+(?=["'“‘(\[]?[\p{Lu}\p{N}])/gu;
+    let from = 0, m;
+    const cut = (to) => {
+      const s = body.slice(from, to).trim();
+      from = to;
+      if (s && !seen.has(s)) { seen.add(s); out.push({ s, title, author, ideas }); }
+    };
+    while ((m = edge.exec(body))) {
+      if (TITLES.test(body.slice(from, m.index + m[0].trimEnd().length))) continue;   // "Dr. Reyes", "J. Smith": no sentence ends there
+      cut(m.index + m[0].length);
+    }
+    cut(body.length);
+  }
+  return out;
+}
+const sentencesOf = (text) => entriesOf(text).map((e) => e.s);
+/* The phrases a level draws from: the sentences whose length is in the level's range. A file with too few of
+   those gives up its nearest instead, which is its shortest sentences for level 1 and its longest for level 10. */
+const FEWEST = 8;
+function phrasesFor(level, sentences) {
+  const [lo, hi] = WM[level - 1].words, mid = (lo + hi) / 2;
+  const sized = sentences.map((x) => typeof x === 'string' ? { s: x } : x)
+    .map((x) => ({ s: x.s, title: x.title || '', author: x.author || '', ideas: x.ideas || '', n: wordCount(x.s) }))
+    .filter((x) => x.n >= 3 && x.n <= 45 && x.s.length <= 360 && !/https?:|www\.|@/.test(x.s));
+  const fit = sized.filter((x) => x.n >= lo && x.n <= hi);
+  const pool = fit.length >= FEWEST ? fit : sized.slice().sort((p, q) => Math.abs(p.n - mid) - Math.abs(q.n - mid)).slice(0, Math.max(FEWEST, fit.length));
+  return { list: pool, fit: fit.length, total: sized.length };
+}
+
+/* ---------- scoring a rewrite against the original ---------- */
+/* Every word of the original is worth 1 and every punctuation mark `mark`.
+     A word earns its worth when the rewrite has it in sequence.
+     A misspelled word earns the share of its letters that are right. Misspelled means one letter out (added, dropped,
+       changed, or two neighbors swapped) in a word of five letters or more, or two out in a word of eight or
+       more; anything further off is a different word. Linking words and words under five letters must be exact,
+       because one letter is all that separates wall from hall.
+     A word right but for its capital letter loses `caseSlip`.
+     A word that is there but out of sequence earns the share `moved`.
+     A linking word (the, of, and ...) counts only beside a word that was got right, in the original or in the
+       rewrite, so a wrong phrase earns nothing for the small words every sentence shares.
+     A mark counts when it follows the same word as in the original.
+   The total is divided by the worth of the original or of the rewrite, whichever is larger, so words left out and
+   words added both cost. */
+const SCORE = { mark: 0.4, caseSlip: 0.2, moved: 0.5 };
+const LINKS = new Set(('a an the and or but nor so yet if as than that of in on at to for by with from into onto up out off over under ' +
+  'is are was were be been am do does did has have had it its he she they we you i him her his their our my your them us me ' +
+  'this these those there not no').split(' '));
+const isLink = (k) => LINKS.has(k.t.toLowerCase());
+function editDistance(a, b) {                              // letters to add, drop, change or swap with a neighbor
+  const m = a.length, n = b.length;
+  let before = null, prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const row = [i];
+    for (let j = 1; j <= n; j++) {
+      let v = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, before[j - 2] + 1);
+      row[j] = v;
+    }
+    before = prev; prev = row;
+  }
+  return prev[n];
+}
+function credit(x, y) {                                    // how far the word y stands in for the word x, 0 to 1
+  if (x.t === y.t) return 1;
+  const a = Array.from(x.t.toLowerCase()), b = Array.from(y.t.toLowerCase());
+  if (a.join('') === b.join('')) return 1 - SCORE.caseSlip;
+  const slips = isLink(x) || a.length < 5 ? 0 : a.length < 8 ? 1 : 2;      // letters that may be out before it is a different word
+  if (Math.abs(a.length - b.length) > slips) return 0;
+  const out = editDistance(a, b);
+  if (out > slips) return 0;
+  const sameCapital = (x.t[0] === x.t[0].toLowerCase()) === (y.t[0] === y.t[0].toLowerCase());
+  return (1 - out / Math.max(a.length, b.length)) * (sameCapital ? 1 : 1 - SCORE.caseSlip);
+}
+/* the words of a phrase in order, each holding the marks that follow it; `lead` holds any marks before the first word */
+function wordsOf(side) {
+  const words = [];
+  side.lead = [];
+  for (const k of side.list) {
+    if (k.w) { k.i = words.length; k.after = []; k.to = null; words.push(k); }
+    else (words.length ? words[words.length - 1].after : side.lead).push(k);
+  }
+  return words;
+}
+function compare(original, rewrite) {
+  const A = tokens(original), B = tokens(rewrite), a = wordsOf(A), b = wordsOf(B), n = a.length, m = b.length;
+  const C = a.map((x) => b.map((y) => credit(x, y)));
+  const pair = (x, y, c, moved) => {
+    x.to = y; y.to = x; x.c = c;
+    x.s = y.s = moved ? 'moved' : x.t === y.t ? 'ok' : x.t.toLowerCase() === y.t.toLowerCase() ? 'case' : 'near';
+    x.exact = x.t === y.t;
+  };
+  const part = (x) => { x.to.s = 'alone'; x.to.to = null; x.s = 'alone'; x.to = null; };   // there on both sides, but not counted
+  /* first the best pairing of words that keeps both phrases in reading order ... */
+  const S = [new Float64Array(m + 1)];
+  for (let i = 1; i <= n; i++) {
+    const up = S[i - 1], row = new Float64Array(m + 1);
+    for (let j = 1; j <= m; j++) {
+      const c = C[i - 1][j - 1];
+      row[j] = Math.max(up[j], row[j - 1], c > 0 ? up[j - 1] + c : 0);
+    }
+    S.push(row);
+  }
+  for (let i = n, j = m; i > 0 && j > 0;) {
+    const c = C[i - 1][j - 1];
+    if (c > 0 && S[i][j] - (S[i - 1][j - 1] + c) < 1e-9) { pair(a[i - 1], b[j - 1], c, false); i--; j--; }
+    else if (S[i - 1][j] >= S[i][j - 1]) i--;
+    else j--;
+  }
+  /* ... then the words left over on both sides are matched wherever they sit, best likeness first */
+  const loose = [];
+  a.forEach((x, i) => { if (!x.to) b.forEach((y, j) => { if (!y.to && C[i][j] > 0) loose.push([C[i][j], x, y]); }); });
+  loose.sort((p, q) => q[0] - p[0]);
+  for (const [c, x, y] of loose) if (!x.to && !y.to) pair(x, y, c, true);
+  /* A linking word proves something only beside a word that was got right, since any two sentences share a few of
+     them. So a matched linking word is kept when the run of matched words it stands in, read along the original or
+     along the rewrite, holds a word that is not a linking word; or when three or more linking words run unbroken
+     on both sides ("it is what it is"). The rest are let go. */
+  const kept = new Set();
+  const runsOf = (seq) => {                                // the stretches of consecutive matched words on one side
+    const runs = [];
+    for (let i = 0; i < seq.length; i++) if (seq[i].to) { let j = i; while (j < seq.length && seq[j].to) j++; runs.push(seq.slice(i, j)); i = j; }
+    return runs;
+  };
+  for (const run of runsOf(a)) {
+    if (run.some((x) => !isLink(x))) { run.forEach((x) => kept.add(x)); continue; }
+    for (let from = 0, e = 1; e <= run.length; e++) {
+      const joined = e < run.length && run[e].s !== 'moved' && run[e - 1].s !== 'moved' && run[e].to.i === run[e - 1].to.i + 1;
+      if (!joined) { if (e - from >= 3) run.slice(from, e).forEach((x) => kept.add(x)); from = e; }
+    }
+  }
+  for (const run of runsOf(b)) if (run.some((y) => !isLink(y.to))) run.forEach((y) => kept.add(y.to));
+  for (const x of a) if (x.to && !kept.has(x)) part(x);
+  /* marks: each belongs to the word before it, and counts when that word is in place and carries the same mark */
+  const settle = (mine, theirs) => { for (const x of mine) { const y = theirs.find((k) => !k.s && k.t === x.t); if (y) x.s = y.s = 'ok'; } };
+  settle(A.lead, B.lead);
+  for (const x of a) if (x.to && x.s !== 'moved') settle(x.after, x.to.after);
+  for (const k of A.list) if (!k.s) k.s = 'gone';
+  for (const k of B.list) if (!k.s) k.s = 'extra';
+
+  /* the points each token earned, written on the token itself (and on its partner) so a round can be shown piece by piece */
+  for (const k of A.list.concat(B.list)) k.p = !k.w && k.s === 'ok' ? SCORE.mark : 0;
+  for (const x of a) if (x.to) x.p = x.to.p = x.c * (x.s === 'moved' ? SCORE.moved : 1);
+  const marks = A.list.filter((k) => !k.w), found = a.filter((x) => x.to), inPlace = marks.filter((k) => k.s === 'ok').length;
+  const earned = A.list.reduce((sum, k) => sum + k.p, 0);
+  const worth = (side) => side.list.reduce((sum, k) => sum + (k.w ? 1 : SCORE.mark), 0);
+  const most = Math.max(worth(A), worth(B));
+  const value = most ? Math.min(1, earned / most) : 0;
+  return {
+    value,
+    percent: value > 1 - 1e-9 ? 100 : Math.min(99, Math.round(value * 100)),
+    earned,                                                                             // points collected ...
+    outOf: most,                                                                        // ... out of the worth of the longer phrase
+    worth: [worth(A), worth(B)],                                                        // what the original and the rewrite are each worth
+    detail: {
+      words: [found.length, n],                                                         // words of the original that are in the rewrite
+      extra: b.filter((y) => y.s === 'extra').length,                                   // words that are not in the original
+      order: [found.filter((x) => x.s !== 'moved').length, found.length],               // of those found, how many are in sequence
+      spelling: [found.filter((x) => x.exact).length, found.length],                    // of those found, how many are letter for letter
+      marks: [inPlace, Math.max(marks.length, B.list.length - m)],                      // marks in place, out of the larger count of marks
+    },
+    a: A, b: B,
+  };
+}
+
+/* The same result as a short account: one line for each thing that happened to the original's tokens, with how many
+   and the points they brought. The lines add up to `earned`. */
+function tallyOf(result) {
+  const A = result.a.list, B = result.b.list, rows = [];
+  const total = (list) => list.reduce((sum, k) => sum + k.p, 0);
+  for (const key of ['ok', 'case', 'near', 'moved', 'alone', 'gone']) {
+    const hits = A.filter((k) => k.w && k.s === key);
+    if (hits.length || key === 'ok') rows.push({ key, n: hits.length, each: hits.map((k) => k.p), points: total(hits) });
+  }
+  const marks = A.filter((k) => !k.w);
+  if (marks.length) rows.push({ key: 'marks', n: marks.filter((k) => k.s === 'ok').length, of: marks.length, points: total(marks) });
+  const extra = B.filter((k) => k.s === 'extra');
+  if (extra.length) rows.push({ key: 'extra', n: extra.filter((k) => k.w).length, marks: extra.filter((k) => !k.w).length, points: 0 });
+  return rows;
+}
+
+/* ---------- grading a recall by what it held on to ---------- */
+/* A phrase is held in mind by its cues, not by its wording: who or what it is about (names), the things it speaks
+   of (nouns) and what it says those are like (details). A root phrase lists its cues in its text file, in the
+   order it uses them:
+       *Hobbes, Leviathan; ~thought; people; government, state; ~live; [constant] fear, afraid
+   *    a name                       [ ]  a detail of the cue it stands beside (alone between semicolons, of none)
+   ~    a verb                       ,    another word that will do as well
+   and anything unmarked is a noun. A cue is found when the recall has it, in any place and any form: fear is found
+   in feared and in fearful, afraid stands in for it because the file says so, and a slip of one letter (two in a
+   long word) is forgiven. Names count most and nouns next. A detail counts only when the cue it describes was found
+   as well, because "constant" without "fear" has kept a word and lost what it was about. Verbs count least, and
+   one verb of saying (argued, held, wrote ...) will do for another. The order of the cues and the build of the
+   sentence are not graded.
+   A meaning model, when the browser can run it, compares the root phrase and the recall as whole sentences. It can
+   only add: it makes up part of what the cues missed, so a fair paraphrase in words the file did not foresee
+   still earns credit, while holding every cue is what earns full marks. */
+const WEIGHT = { name: 2, noun: 1.5, detail: 0.5, verb: 0.25 };
+const IDEAS = { boost: 0.5, low: 0.35, high: 0.85 };       // the meaning model can make up half of what the cues missed; cosine 0.35 counts as nothing, 0.85 as a full match
+
+/* The Porter stemmer: the plural, the tense and the common endings of an English word come off, so that fear,
+   fears, feared and fearing are one word, and so are moral, morals and morality. */
+const STEP2 = [['ational', 'ate'], ['tional', 'tion'], ['enci', 'ence'], ['anci', 'ance'], ['izer', 'ize'], ['abli', 'able'], ['alli', 'al'], ['entli', 'ent'], ['eli', 'e'], ['ousli', 'ous'],
+  ['ization', 'ize'], ['ation', 'ate'], ['ator', 'ate'], ['alism', 'al'], ['iveness', 'ive'], ['fulness', 'ful'], ['ousness', 'ous'], ['aliti', 'al'], ['iviti', 'ive'], ['biliti', 'ble']];
+const STEP3 = [['icate', 'ic'], ['ative', ''], ['alize', 'al'], ['iciti', 'ic'], ['ical', 'ic'], ['ful', ''], ['ness', '']];
+const STEP4 = ['ement', 'ance', 'ence', 'able', 'ible', 'ment', 'ant', 'ent', 'ion', 'ism', 'ate', 'iti', 'ous', 'ive', 'ize', 'al', 'er', 'ic', 'ou'];
+function porter(word) {
+  let w = word;
+  if (w.length < 3 || /[^a-z]/.test(w)) return w;
+  const cons = (s, i) => s[i] === 'y' ? i === 0 || !cons(s, i - 1) : !'aeiou'.includes(s[i]);
+  const measure = (s) => {                                 // how many times a run of vowels is followed by a run of consonants
+    let n = 0, i = 0;
+    while (i < s.length && cons(s, i)) i++;
+    while (i < s.length) {
+      while (i < s.length && !cons(s, i)) i++;
+      if (i >= s.length) break;
+      n++;
+      while (i < s.length && cons(s, i)) i++;
+    }
+    return n;
+  };
+  const vowel = (s) => { for (let i = 0; i < s.length; i++) if (!cons(s, i)) return true; return false; };
+  const twin = (s) => s.length > 1 && s[s.length - 1] === s[s.length - 2] && cons(s, s.length - 1);
+  const cvc = (s) => s.length > 2 && cons(s, s.length - 3) && !cons(s, s.length - 2) && cons(s, s.length - 1) && !'wxy'.includes(s[s.length - 1]);
+  const cut = (n) => w.slice(0, w.length - n);
+  if (w.endsWith('sses') || w.endsWith('ies')) w = cut(2);
+  else if (w.endsWith('s') && !w.endsWith('ss')) w = cut(1);
+  let bare = false;
+  if (w.endsWith('eed')) { if (measure(cut(3)) > 0) w = cut(1); }
+  else if (w.endsWith('ed') && vowel(cut(2))) { w = cut(2); bare = true; }
+  else if (w.endsWith('ing') && vowel(cut(3))) { w = cut(3); bare = true; }
+  if (bare) {
+    if (/(at|bl|iz)$/.test(w)) w += 'e';
+    else if (twin(w) && !/[lsz]$/.test(w)) w = cut(1);
+    else if (measure(w) === 1 && cvc(w)) w += 'e';
+  }
+  if (w.endsWith('y') && vowel(cut(1))) w = cut(1) + 'i';
+  for (const step of [STEP2, STEP3]) {
+    const hit = step.find(([end]) => w.endsWith(end));
+    if (hit && measure(cut(hit[0].length)) > 0) w = cut(hit[0].length) + hit[1];
+  }
+  const end = STEP4.find((e) => w.endsWith(e));
+  if (end) { const s = cut(end.length); if (measure(s) > 1 && (end !== 'ion' || /[st]$/.test(s))) w = s; }
+  if (w.endsWith('e')) { const s = cut(1), n = measure(s); if (n > 1 || (n === 1 && !cvc(s))) w = s; }
+  if (w.endsWith('ll') && measure(w) > 1) w = cut(1);
+  return w;
+}
+/* Words of one family that no rule connects. Each line stands for its first word. */
+const FAMILIES = 'man men|woman women|child children|person people|foot feet|tooth teeth|life live alive|wife wives|knife knives|self selves|half halves|thief thieves theft|wolf wolves|' +
+  'death dead die dies dying deadly|know knew known knowledge|think thought|believe belief|choose chose chosen choice|see saw seen|give gave given gift|take took taken|make made|say said|' +
+  'tell told|teach taught|write wrote written|speak spoke spoken speech|find found|hold held|keep kept|leave left|feel felt|lose lost loss|win won|buy bought|sell sold|bring brought|' +
+  'seek sought|fight fought|catch caught|steal stole stolen|fall fell fallen|rise rose risen|grow grew grown growth|break broke broken|come came|become became|begin began begun|run ran|' +
+  'lead led|meet met|send sent|spend spent|build built|stand stood|understand understood|eat ate eaten|drink drank drunk|throw threw thrown|draw drew drawn|hide hid hidden|' +
+  'forget forgot forgotten|forgive forgave forgiven|wear wore worn|swear swore sworn|strike struck|shoot shot|pay paid|fly flew flown|go went gone|get got|' +
+  'free freedom|wise wisdom|true truth|strong strength|poor poverty|anger angry|hunger hungry|proud pride|hate hatred|obey obedience obedient|tyrant tyranny tyrannical|religion religious|' +
+  'science scientific scientist|judge judgment judgement|agree agreement|move movement|treat treatment|act action active|create creation creator|please pleasure pleasant|' +
+  'pure purity|simple simplicity|destroy destruction|deceive deception|perceive perception|prove proof|young youth|vain vanity|marry marriage|compare comparison|describe description|' +
+  'explain explanation|decide decision|divide division|conclude conclusion|permit permission|admit admission|submit submission|produce production|reduce reduction|consume consumption|assume assumption|' +
+  'coerce coercion|rebel rebellion|suspect suspicion|persuade persuasion|define definition|compete competition|repeat repetition|receive reception|redeem redemption';
+const FAMILY = new Map();
+for (const line of FAMILIES.split('|')) {
+  const stems = line.split(' ').map(porter);
+  for (const s of stems) if (s !== stems[0]) FAMILY.set(s, stems[0]);
+}
+/* the form of a word that its forms share (feared -> fear, morality -> moral), and the head of its family (children -> child) */
+const stemOf = (word) => porter(String(word).toLowerCase().replace(/['’]s$/, '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, ''));
+const headOf = (stem) => FAMILY.get(stem) || stem;
+const stemsOf = (text) => tokens(text).list.filter((k) => k.w).map((k) => stemOf(k.t)).filter(Boolean);
+/* verbs of saying: one will do for another, since "Hobbes argued" and "Hobbes wrote" hold the same thing */
+const REPORT = new Set(('argue say hold think believe claim write teach suggest observe describe warn insist note maintain propose state explain show feel consider contend assert ' +
+  'conclude find tell point add remark declare').split(' ').map((w) => headOf(stemOf(w))));
+const says = (stem) => REPORT.has(headOf(stem));
+/* Two stems of one family that only an ending tells apart: clear and clearer, rule and ruler, king and kingdom. */
+const ENDINGS = new Set(['r', 'er', 'st', 'est', 'or', 'i', 'ri', 'ist', 'dom', 'ship', 'hood', 'an', 'ian', 'al', 'ic', 'ish', 'ou', 'ous', 'li', 'en']);
+function kin(a, b) {
+  if (a === b) return true;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  return short.length >= 4 && long.startsWith(short) && ENDINGS.has(long.slice(short.length));
+}
+/* Is the stem in the recall? As its own word or one of its family, or with a slip of a letter (two in a long word).
+   A verb of saying in the recall counts only as itself, or "Hume writes" would pass for "writers". */
+function hasStem(pool, stem) {
+  if (pool.has(stem)) return true;
+  const head = headOf(stem), slips = stem.length >= 8 ? 2 : stem.length >= 5 ? 1 : 0;
+  for (const t of pool) {
+    if (headOf(t) === head) return true;
+    if (says(t)) continue;
+    if (kin(t, stem)) return true;
+    if (slips && Math.abs(t.length - stem.length) <= slips && editDistance(Array.from(t), Array.from(stem)) <= slips) return true;
+  }
+  return false;
+}
+/* The cues of a phrase as its text file lists them, in order:
+   [{ kind: 'name' | 'noun' | 'detail' | 'verb', label, alts: [[stems]], of }]
+   `alts` are the words that will each do, and `of` is the place in the list of the cue a detail describes (-1 for
+   a detail on its own and for everything else). A list with no marks in it is a list of nouns. */
+function ideasOf(field) {
+  const out = [];
+  const add = (kind, text, of) => {
+    const said = text.split(',').map((a) => a.trim()).filter(Boolean);
+    const alts = said.map((a) => {                           // "Art of War" asks for art and war: the small words in a name do not count
+      const words = tokens(a).list.filter((k) => k.w), main = words.filter((k) => !isLink(k));
+      return (main.length ? main : words).map((k) => stemOf(k.t)).filter(Boolean);
+    }).filter((a) => a.length);
+    if (!alts.length) return -1;
+    out.push({ kind, label: said[0], alts, of });
+    return out.length - 1;
+  };
+  for (const part of String(field || '').split(';')) {
+    const before = [], after = [];
+    let core = '', m;
+    const piece = /\[([^\]]*)\]|([^\[\]]+)/g;
+    while ((m = piece.exec(part))) {
+      if (m[1] !== undefined) (core.trim() ? after : before).push(m[1]);
+      else core += m[2];
+    }
+    core = core.trim();
+    const kind = core[0] === '*' ? 'name' : core[0] === '~' ? 'verb' : 'noun';
+    const mine = before.map((d) => add('detail', d, -1)).filter((i) => i >= 0);
+    const cue = core ? add(kind, kind === 'noun' ? core : core.slice(1), -1) : -1;
+    for (const d of after) { const i = add('detail', d, -1); if (i >= 0) mine.push(i); }
+    if (cue >= 0) for (const i of mine) out[i].of = cue;
+  }
+  return out;
+}
+/* which cues a recall holds: [{ kind, label, stems, of, found, counts }]. `counts` is `found`, except that a
+   detail whose cue was not found does not count. */
+function ideasFound(ideas, recall) {
+  const pool = new Set(stemsOf(recall));
+  const said = Array.from(pool).some(says);
+  const checks = ideas.map((idea) => ({
+    kind: idea.kind, label: idea.label, stems: idea.alts[0], of: idea.of,
+    found: idea.alts.some((alt) => alt.every((s) => hasStem(pool, s))) || (idea.kind === 'verb' && said && idea.alts[0].length === 1 && says(idea.alts[0][0])),
+  }));
+  for (const c of checks) c.counts = c.found && (c.of < 0 || checks[c.of].found);
+  return checks;
+}
+/* the share of the cues held, each by its weight: 0 to 1 */
+function cueShare(checks) {
+  let held = 0, all = 0;
+  for (const c of checks) { all += WEIGHT[c.kind]; if (c.counts) held += WEIGHT[c.kind]; }
+  return all ? held / all : 0;
+}
+/* how many of each kind were held: { name: { held, of }, ... , loose } where `loose` counts details found without their cue */
+function cueCounts(checks) {
+  const out = { name: { held: 0, of: 0 }, noun: { held: 0, of: 0 }, detail: { held: 0, of: 0 }, verb: { held: 0, of: 0 }, loose: 0 };
+  for (const c of checks) { out[c.kind].of++; if (c.counts) out[c.kind].held++; else if (c.found) out.loose++; }
+  return out;
+}
+/* The phrase cut into its tokens, each word with the place of its cue in the list, or -1: what the review colors.
+   Where two cues share a word, the heavier one has it. */
+function cuesIn(phrase, checks) {
+  const at = new Map();
+  checks.forEach((c, i) => { for (const s of c.stems.map(headOf)) if (!at.has(s) || WEIGHT[checks[at.get(s)].kind] < WEIGHT[c.kind]) at.set(s, i); });
+  const { chars, list } = tokens(phrase);
+  return { chars, list: list.map((k) => { const s = k.w ? headOf(stemOf(k.t)) : ''; return { w: k.w, at: k.at, end: k.end, cue: s && at.has(s) ? at.get(s) : -1 }; }) };
+}
+/* cosine similarity between the two sentences -> 0 to 1 */
+const meaningShare = (cos) => Math.min(1, Math.max(0, (cos - IDEAS.low) / (IDEAS.high - IDEAS.low)));
+/* the comprehension score from the cues and, when there is one, the meaning score. A phrase with no cues listed
+   falls back to the meaning score, and with neither to the wording score. */
+function comprehension(checks, meaning, wording) {
+  if (checks.length) {
+    const share = cueShare(checks);
+    return meaning == null ? share : share + (1 - share) * IDEAS.boost * meaning;
+  }
+  return meaning == null ? wording : meaning;
+}
+const percentOf = (v) => v > 1 - 1e-9 ? 100 : Math.min(99, Math.round(v * 100));
+
+/* ---------- the two sphere colors ---------- */
+/* OKLCH (lightness, chroma, hue in degrees) to an sRGB color; `fits` says whether the screen can show it as asked */
+function toRgb(l, c, h) {
+  const t = h * Math.PI / 180, a = c * Math.cos(t), b = c * Math.sin(t);
+  const L = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const M = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const S = (l - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S,
+          -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S,
+          -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S];
+}
+const fits = (l, c, h) => toRgb(l, c, h).every((v) => v >= -0.0005 && v <= 1.0005);
+function css(l, c, h) {
+  const out = toRgb(Math.min(1, Math.max(0, l)), c, h).map((v) => {
+    const u = Math.min(1, Math.max(0, v));
+    return Math.round(255 * (u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055));
+  });
+  return 'rgb(' + out.join(' ') + ')';
+}
+/* Two colors of equal strength that sit `gap` apart: most of the gap is a turn of hue, the rest a step in
+   lightness, so the pair differs in both and no kind of color vision loses the difference altogether. The
+   starting hue and the directions of the turn and the step are new every round. */
+const CHROMA = 0.09;
+const shade = (l, h) => ({ l, h, mid: css(l, CHROMA, h), hi: css(l + 0.07, CHROMA, h), lo: css(l - 0.13, CHROMA, h) });
+function twoColors(gap) {
+  const across = Math.min(0.866 * gap, 2 * CHROMA);
+  const turn = 2 * Math.asin(across / (2 * CHROMA)) * 180 / Math.PI;
+  const step = Math.sqrt(Math.max(0, gap * gap - across * across));
+  for (let tries = 0; tries < 80; tries++) {
+    const h = rand() * 360, l = 0.58 + rand() * 0.16;
+    const h2 = h + (coin() ? turn : -turn), l2 = l + (coin() ? step : -step);
+    if (l2 >= 0.46 && l2 <= 0.88 && fits(l, CHROMA, h) && fits(l2, CHROMA, h2)) return [shade(l, h), shade(l2, h2)];
+  }
+  return [shade(0.7, 250), shade(0.7 - step, 250 - turn)];
+}
+
+/* ---------- phrases of every length, used only when the page cannot read its text files ---------- */
+/* Eight for each level, in the same form as a line of a text file: the phrase, then its text, its author and its cues. */
+const SAMPLES = [
+  "Plato's Republic asks what justice is and why it matters. | Republic | Plato | *Plato; *Republic; ~asks; justice, fairness; ~matters",
+  "In his Ethics, Aristotle says good character is built by practice. | Nicomachean Ethics | Aristotle | *Ethics; *Aristotle; ~says; [good] character, virtue; ~built; practice, habit, repetition",
+  "Locke held that governments exist to protect life, liberty and property. | Second Treatise of Government | John Locke | *Locke; ~held; governments, state; ~exist; ~protect, safeguard, defend, preserve; life; liberty, freedom; property",
+  "The Communist Manifesto calls all history a story of class struggle. | The Communist Manifesto | Karl Marx and Friedrich Engels | *Communist Manifesto, Communist, Manifesto, Marx, Engels; ~calls; history; story; class; struggle, conflict, war, fight",
+  "Genesis opens with God making heaven and earth in six days. | Genesis |  | *Genesis, Bible; ~opens; *God; ~making; heaven; earth, world; [six] days, week, 6",
+  "The Buddha taught that craving is the root of suffering. | Setting the Wheel of Dhamma in Motion | the Buddha's first sermon | *Buddha; ~taught; craving, desire, wanting, attachment, greed; root, cause, source, origin; suffering, pain, misery",
+  "Hobbes thought people without government would live in constant fear. | Leviathan | Thomas Hobbes | *Hobbes, Leviathan; ~thought; people; government, state, lawless, anarchy, nature; ~live; [constant] fear, afraid, terror, danger, war",
+  "Darwin argued that humans and apes share a common ancestor. | The Descent of Man | Charles Darwin | *Darwin, Descent; ~argued; humans, man, people, mankind; apes, monkeys, primates, chimpanzees; ~share; [common] ancestor, descend, related, evolved",
+  "In the Apology, Socrates says he would rather die than stop asking questions. | Apology | Plato | *Apology; *Socrates; ~says; ~die; ~stop, quit, abandon; ~asking, philosophy; questions",
+  "Kant held that people must never be treated merely as tools for others. | Groundwork of the Metaphysics of Morals | Immanuel Kant | *Kant; ~held; people, humans; ~treated; tools, means, instruments, used, objects; others",
+  "Gandhi taught that unjust rule should be resisted firmly but without violence. | Hind Swaraj | Mohandas K. Gandhi | *Gandhi, Swaraj; ~taught; [unjust, injustice, oppressive] rule; ~resisted, oppose; [firmly]; violence, nonviolence, peaceful, peacefully",
+  "In his Reflections, Burke warned that tearing down old institutions invites chaos. | Reflections on the Revolution in France | Edmund Burke | *Reflections; *Burke; ~warned; ~tearing, destroy, abolish, overthrow; [old] institutions, traditions, order; ~invites; chaos, disorder, anarchy",
+  "In the Gita, Krishna tells Arjuna to act without clinging to results. | Bhagavad Gita |  | *Gita; *Krishna; ~tells; *Arjuna; ~act, duty; ~clinging, attachment, detached; results, outcome, fruits, consequences",
+  "The Sermon on the Mount tells its hearers to love their enemies. | Gospel of Matthew |  | *Sermon on the Mount, Sermon, Mount, Jesus, Matthew; ~tells; hearers; ~love; enemies",
+  "Xunzi argued that people are born selfish and must be taught goodness. | The Xunzi |  | *Xunzi; ~argued; people [selfish, bad, evil, greedy]; ~born, nature; ~taught; goodness",
+  "Aristotle called humans political animals who can only flourish in a community. | Politics | Aristotle | *Aristotle; ~called; humans; [political, social] animals, creatures; ~flourish, thrive; community, society, city, polis",
+  "Epicurus taught that death is nothing to fear, because the dead cannot feel anything. | Letter to Menoeceus | Epicurus | *Epicurus; ~taught; death; ~fear, afraid, dread; ~feel",
+  "Hume argued that reason by itself cannot move us to act; only feeling can. | A Treatise of Human Nature | David Hume | *Hume; ~argued; reason; ~move, motivate; ~act; feeling, passion, emotion, desire",
+  "Montesquieu argued that liberty is safest when the powers of government are kept apart. | The Spirit of the Laws | Montesquieu | *Montesquieu, Spirit; ~argued; liberty, freedom [safest]; powers; government; ~kept; [apart, separate, divided]",
+  "In Mutual Aid, Kropotkin argued that cooperation shapes evolution at least as much as competition. | Mutual Aid | Peter Kropotkin | *Mutual Aid; *Kropotkin; ~argued; cooperation; ~shapes; evolution, evolve; competition, struggle",
+  "Ecclesiastes says that birth, death, grief and joy each arrive in their own season. | Ecclesiastes |  | *Ecclesiastes; ~says; birth, born; death; grief; joy; ~arrive; season, time",
+  "The opening verses of the Dhammapada teach that our thoughts shape what we become. | Dhammapada |  | [opening] verses; *Dhammapada, Buddha; ~teach; thoughts, mind; ~shape, make, create, form; ~become",
+  "Mary Shelley's Frankenstein asks whether a creature turns cruel by nature or through rejection. | Frankenstein | Mary Shelley | *Mary Shelley, Mary, Shelley; *Frankenstein; ~asks; creature, monster [cruel, cruelty, evil, violent]; ~turns; nature, born; rejection, abandoned",
+  "Darwin noted that people everywhere show fear, anger and joy with the same faces. | The Expression of the Emotions in Man and Animals | Charles Darwin | *Darwin; ~noted; people; [everywhere, universal]; ~show; fear; anger; joy, happiness; faces, expressions",
+  "In the Phaedo, Socrates spends his final hours calmly arguing with friends that the soul cannot die. | Phaedo | Plato | *Phaedo; *Socrates; ~spends; [final, last] hours; [calmly, calm]; ~arguing; friends; soul; ~die, immortal, deathless",
+  "Bacon warned that the mind is misled by idols: habits of thought that distort what we see. | Novum Organum | Francis Bacon | *Bacon; ~warned; mind; ~misled, mislead, deceive, error; idols; habits, prejudices, biases; thought; ~distort; ~see",
+  "In On Liberty, Mill argued that society may restrain a person only to prevent harm to others. | On Liberty | John Stuart Mill | *Liberty; *Mill; ~argued; society; ~restrain, limit, interfere; person; ~prevent, coerce, power; harm; others",
+  "Machiavelli advised a prince who cannot win both love and fear to settle for being feared. | The Prince | Niccolò Machiavelli | *Machiavelli; ~advised; prince; ~win; love; fear; ~settle",
+  "In the parable of the Good Samaritan, a despised stranger is the one who stops to help. | Gospel of Luke |  | parable; *Samaritan, Luke; [despised, outsider, enemy] stranger; ~stops; ~help, care, mercy",
+  "The Upanishads teach that the innermost self of each person is one with the ultimate reality. | The Upanishads |  | *Upanishads; ~teach; [innermost] self, atman, soul; person; [ultimate] reality, Brahman, absolute; [one, same, identical]",
+  "Milgram found that ordinary people would deliver what they believed were painful shocks when an authority insisted. | Obedience to Authority | Stanley Milgram | *Milgram; ~found; [ordinary] people; ~deliver; ~believed; [painful] shocks, electric; authority, obey, orders; ~insisted",
+  "In Civilization and Its Discontents, Freud argued that social order is bought by suppressing our instincts. | Civilization and Its Discontents | Sigmund Freud | *Civilization and Its Discontents, Civilization, Discontents, society; *Freud; ~argued; [social] order; ~bought; ~suppressing, repress, renounce, restrain; instincts, drives, desires",
+  "Kant's Critique of Pure Reason argues that the mind does not simply receive the world but gives it shape. | Critique of Pure Reason | Immanuel Kant | *Kant; *Critique; ~argues; mind; ~receive, passive; world; ~gives; shape, structure, organize, form",
+  "Wittgenstein closed his Tractatus by advising his readers to keep silent about whatever lies beyond the reach of language. | Tractatus Logico-Philosophicus | Ludwig Wittgenstein | *Wittgenstein; ~closed; *Tractatus; ~advising; readers; ~keep; [silent, silence, quiet]; ~lies; reach; language, words, speak",
+  "In The Social Contract, Rousseau argued that laws are legitimate only when they express the general will of the people. | The Social Contract | Jean-Jacques Rousseau | *Social Contract; *Rousseau; ~argued; laws [legitimate, valid]; ~express; [general] will; people, citizens",
+  "Engels argued that the state arose to keep class conflict in check and would wither once classes disappeared. | The Origin of the Family, Private Property and the State | Friedrich Engels | *Engels; ~argued; state; ~arose; ~keep; class; conflict, struggle; ~wither; ~disappeared, fade, vanish",
+  "In his Guide for the Perplexed, Maimonides argued that God can be described only by what God is not. | The Guide for the Perplexed | Maimonides | *Guide for the Perplexed, Guide, Perplexed; *Maimonides; ~argued; *God; ~described; [not, negative, negation]",
+  "The Heart Sutra, among the shortest Buddhist scriptures, teaches that nothing exists with a fixed nature of its own. | Heart Sutra |  | *Heart Sutra; [shortest, short, brief] [Buddhist] scriptures; ~teaches; ~exists; [fixed] nature, self, essence, inherent; [nothing, emptiness, empty]",
+  "Pascal thought human greatness lies in thought: we are as frail as reeds, yet we know that we are frail. | Pensées | Blaise Pascal | *Pascal; [human] greatness, dignity; ~lies; thought; [frail, fragile, weak] reeds; ~know, aware",
+  "Arendt coined the phrase the banality of evil after watching the trial of a Nazi official who seemed merely ordinary. | Eichmann in Jerusalem | Hannah Arendt | *Arendt, Eichmann; ~coined; phrase; banality; evil; ~watching; trial; [Nazi] official [ordinary, normal]; ~seemed",
+  "Schopenhauer held that life swings like a pendulum between the pain of wanting and the boredom of having what we wanted. | The World as Will and Representation | Arthur Schopenhauer | *Schopenhauer; ~held; life; ~swings; pendulum; pain, suffering; wanting, desire; boredom, bored",
+  "Nietzsche asked his readers to imagine living the same life again and again forever, and to judge whether they could welcome it. | The Gay Science | Friedrich Nietzsche | *Nietzsche, recurrence, return; ~asked; readers; ~imagine; life; [forever, repeat, recurrence]; ~judge; ~welcome, accept, affirm, love, embrace",
+  "Adam Smith argued that people pursuing their own gain often serve the public better than those who set out to help it. | The Wealth of Nations | Adam Smith | *Adam Smith, Adam, Smith; ~argued; people; ~pursuing; gain, interest, self; ~serve, benefit; public, society, common; [better]; ~set; ~help",
+  "In The Second Sex, Beauvoir argued that womanhood is not a fate fixed by biology but a role that society teaches. | The Second Sex | Simone de Beauvoir | *Second Sex; *Beauvoir; ~argued; womanhood, women; fate [fixed]; biology, nature, born; role; society; ~teaches",
+  "The Rig Veda contains a hymn of creation which ends by wondering whether even the highest god knows how the world began. | Rig Veda |  | *Rig Veda, Rig, Veda; ~contains; hymn; creation; ~ends; ~wondering; [highest] god; ~knows, unknown, uncertain; world; ~began",
+  "The Popol Vuh of the Maya tells how the gods made people from maize after attempts with mud and wood had failed. | Popol Vuh |  | *Popol Vuh, Popol, Vuh; *Maya, Mayan; ~tells; gods; ~made; people, humans; maize, corn; attempts; mud; wood; ~failed",
+  "The Epic of Gilgamesh follows a king who, after his friend dies, searches the world for a way to escape death. | The Epic of Gilgamesh |  | *Epic of Gilgamesh, Epic, Gilgamesh; ~follows; king; friend, Enkidu; ~searches, quest, journey; world; ~escape; death, immortality",
+  "Erich Fromm argued that modern freedom can feel so lonely that people flee from it into obedience to a strong leader. | Escape from Freedom | Erich Fromm | *Erich Fromm, Erich, Fromm; ~argued; [modern] freedom [lonely, loneliness, isolation]; ~feel; people; ~flee, escape; obedience, submit; [strong] leader, authority",
+  "Heidegger argued that we usually flee from the thought of our own death, and that facing it honestly is what makes a life truly our own. | Being and Time | Martin Heidegger | *Heidegger; ~argued; ~flee, avoid, escape, deny; thought; death; ~facing, confront; [honestly, honest]; ~makes; life; [own, authentic, authenticity]",
+  "Marcus Aurelius reminded himself each morning that he would meet ungrateful, arrogant and deceitful people, and that none of them could truly harm him. | Meditations | Marcus Aurelius | *Marcus Aurelius, Marcus, Aurelius; ~reminded; morning, day, daily; ~meet; [ungrateful] [arrogant] [deceitful, difficult, bad] people; ~harm, hurt",
+  "Machiavelli observed in his Discourses that a republic stays free only while its citizens remain willing to put the common good before private gain. | Discourses on Livy | Niccolò Machiavelli | *Machiavelli; ~observed; *Discourses; republic [free]; ~stays; citizens, people; ~remain; ~put; [common] good; [private] gain, virtue",
+  "Nozick argued that a state doing more than protecting people from force, theft and fraud violates the rights of the very citizens it claims to serve. | Anarchy, State, and Utopia | Robert Nozick | *Nozick; ~argued; state, government; ~protecting; people; force; theft; fraud; ~violates; rights; citizens; ~claims; ~serve",
+  "The Quran tells how Abraham turned from the star, the moon and the sun because each of them set, and gave his worship to their maker. | The Quran |  | *Quran, Ibrahim; ~tells; *Abraham; ~turned; star; moon; sun; ~set, disappear; ~gave; worship; maker, creator, God",
+  "Julian of Norwich described a vision of something no bigger than a hazelnut, which she understood to be the whole of creation, sustained by love. | Revelations of Divine Love | Julian of Norwich | *Julian of Norwich, Julian, Norwich; ~described; vision; [bigger] hazelnut, nut; ~understood; [whole] creation, world; ~sustained; love, God",
+  "In Antigone, Sophocles has the chorus praise human cleverness for taming sea, soil and beast, yet remind us that it has found no cure for death. | Antigone | Sophocles | *Antigone; *Sophocles; chorus; ~praise; [human, man] cleverness, ingenuity; ~taming, master; sea; soil; beast; ~remind; ~found; cure; death",
+  "Near its end, the Iliad shows two enemies, Achilles and Priam, weeping together in the same tent over what the war has cost each of them. | Iliad | Homer | *Iliad, Homer; ~shows; [two] enemies; *Achilles; *Priam; ~weeping, cry, grief, mourn; [together]; tent; war; ~cost",
+  "In the Meno, Socrates leads an untaught slave boy to solve a problem in geometry, and takes this as a sign that learning is really a kind of remembering. | Meno | Plato | *Meno; *Socrates, Plato; ~leads; [untaught] [slave] boy; ~solve; problem, math; geometry; ~takes; learning; remembering, recollection",
+  "Kant proposed a test for any rule of conduct: ask whether you could will that everyone, everywhere, should follow the same rule, and reject it if you could not. | Groundwork of the Metaphysics of Morals | Immanuel Kant | *Kant; ~proposed; test; rule, maxim; conduct; ~ask; ~will; [everywhere]; ~follow; ~reject, wrong, fail; [everyone, universal, universalize, everybody]",
+  "Arendt argued that totalitarian movements thrive on the loneliness of people who no longer feel they belong anywhere, and who will accept any story that gives them a place. | The Origins of Totalitarianism | Hannah Arendt | *Arendt; ~argued; [totalitarian] movements; ~thrive; loneliness, lonely, isolated; people; ~feel; ~belong; ~accept; story; ~gives; place",
+  "Keynes argued that an economy can settle into long unemployment, and that in a slump the government should spend to restore the demand that private buyers have withdrawn. | The General Theory of Employment, Interest and Money | John Maynard Keynes | *Keynes; ~argued; economy; ~settle; [long] unemployment; slump, depression, recession; government; ~spend, stimulus; ~restore; demand; [private] buyers; ~withdrawn",
+  "The Bhagavad Gita opens on a battlefield, where the warrior Arjuna, seeing teachers and cousins in the opposing army, lays down his bow and refuses to fight. | Bhagavad Gita |  | *Bhagavad Gita, Bhagavad, Gita; ~opens; battlefield, battle, war; warrior; *Arjuna; ~seeing; teachers; cousins, family, relatives; [opposing] army; ~lays; bow; ~refuses; ~fight",
+  "In the parable of the prodigal son, a father runs to welcome home the child who wasted his inheritance, while the dutiful elder brother looks on in anger. | Gospel of Luke |  | parable; [prodigal, Luke, Jesus] son; father; ~runs; ~welcome; [home]; child; ~wasted, returns; inheritance; [dutiful] [elder] brother; ~looks; anger, resent",
+  "Shakespeare gives Hamlet a speech praising humankind for its reason and its godlike understanding, which ends with the weary prince calling us nothing but a handful of dust. | Hamlet | William Shakespeare | *Shakespeare; ~gives; *Hamlet; speech; ~praising; humankind; reason; [godlike, noble] understanding; ~ends; [weary] prince; ~calling; handful; dust",
+  "Goffman described everyday social life as a kind of theater, in which each of us manages the impression we make and keeps a backstage hidden from the audience. | The Presentation of Self in Everyday Life | Erving Goffman | *Goffman; ~described; [everyday] [social] life; theater, theatre, stage, performance; ~manages; impression, image; ~make; ~keeps; backstage [hidden, private]; audience",
+  "Kierkegaard described three ways of living: the pursuit of pleasure, the life of duty, and the life of faith, and held that no argument can carry a person from one to the next. | Stages on Life's Way | Søren Kierkegaard | *Kierkegaard; ~described; [three] ways; living; pursuit; pleasure, aesthetic; duty, ethical; faith, religious; ~held; argument, leap, choice; ~carry; person",
+  "Wittgenstein argued that the meaning of a word is not a hidden object it stands for but the use people make of it within the shared activities of daily life. | Philosophical Investigations | Ludwig Wittgenstein | *Wittgenstein; ~argued; meaning; word; [hidden] object; ~stands; use, usage; people; ~make; [shared] activities; [daily] life, practice",
+  "Mill argued in The Subjection of Women that nobody can know the true nature of the two sexes while one of them is still kept in legal dependence on the other. | The Subjection of Women | John Stuart Mill | *Mill; ~argued; *Subjection, subordination; Women; ~know; [true] nature; [two] sexes; ~kept; [legal, law] dependence",
+  "Rawls argued that inequalities of wealth and power are just only if they work to the benefit of the least advantaged members of society and attach to positions open to all. | A Theory of Justice | John Rawls | *Rawls; ~argued; inequalities, unequal; wealth; power; ~work; benefit, help; [least] [advantaged, worst, poorest, disadvantaged] members; society; ~attach; positions, opportunity [open]",
+  "The Zoroastrian hymns of the Avesta describe the world as a struggle between truth and the lie, in which each person must choose a side by thought, word and deed. | Avesta |  | [Zoroastrian, Zoroaster] hymns; *Avesta, Zarathustra; ~describe; world; struggle; truth, good; lie, falsehood, evil; person; ~choose; side; thought; word; deed",
+  "The Talmud tells how Hillel, asked to sum up the whole law while his questioner stood on one foot, replied that it forbids treating others as you would hate to be treated. | The Talmud |  | *Talmud; ~tells; *Hillel; ~asked; ~sum; [whole] law, Torah; questioner; ~stood; foot; ~replied; ~forbids; ~treating, neighbor; others; ~hate",
+  "La Rochefoucauld's Maxims argue that what we call virtue is very often vice in disguise, and that we admit small faults mainly to suggest that we have no large ones. | Maxims | François de La Rochefoucauld | *Rochefoucauld; *Maxims; ~argue; ~call; virtue; vice, vanity, interest; disguise, mask; ~admit; [small] faults [large]; ~suggest",
+  "Aristotle observed in his Rhetoric that the young are hopeful because life has not yet cheated them often, while the old are cautious because experience has let them down so many times. | Rhetoric | Aristotle | *Aristotle; ~observed; *Rhetoric; young [hopeful, optimistic]; life; ~cheated; old, elderly, age [cautious, caution, disappointed]; experience; ~let",
+  "Aristotle argued that happiness is not a passing feeling but the activity of a whole life lived well, adding that one fine day no more makes a life happy than one swallow makes a spring. | Nicomachean Ethics | Aristotle | *Aristotle; ~argued; happiness; [passing] feeling; activity; [whole] life, lifetime; [well]; ~adding; [fine] day; ~makes; swallow; spring",
+  "Spinoza argued that people think themselves free only because they know their own desires but not the causes behind them, much as a falling stone, if it could think, would suppose it chose to fall. | Correspondence | Baruch Spinoza | *Spinoza; ~argued; people [free, freely]; ~think; ~know, aware; desires; causes; [falling] stone; ~suppose; ~chose",
+  "Thucydides has the Athenians tell the people of Melos that questions of justice arise only between equals, and that otherwise power takes what it is able to take while weakness gives up what it cannot keep. | History of the Peloponnesian War | Thucydides | *Thucydides, Melian; *Athenians; ~tell; people; *Melos; justice; ~arise; equals; power, strong; ~takes; weakness; ~gives; ~keep",
+  "Marx held that people do make their own history, yet never from scratch: they must work with circumstances and habits of thought inherited from earlier generations, which shape what they are able to imagine and to do. | The Eighteenth Brumaire of Louis Bonaparte | Karl Marx | *Marx; ~held; people; ~make; history; ~work; circumstances, past; habits; thought; ~inherited; [earlier] generations; ~shape; ~imagine",
+  "In the book of Job, God finally answers from a whirlwind, not by explaining suffering but with question after question about the making of the earth, the sea and the wild animals, until Job falls silent. | Book of Job |  | *Job [silent, silence]; *God; ~answers; whirlwind, storm; ~explaining; suffering; question; making; earth; sea; [wild] animals, creation; ~falls",
+  "In the Katha Upanishad, the boy Nachiketa is offered wealth, long life and every pleasure by the god of death, but refuses them all and asks only to be taught what becomes of a person after dying. | Katha Upanishad |  | *Katha Upanishad, Katha, Upanishad; boy; *Nachiketa; ~offered; wealth; [long] life; pleasure; god; death, Yama; ~refuses; ~asks; ~taught; ~becomes; person",
+  "Augustine confessed that as a boy he stole pears he did not even want to eat, and concluded that what he had loved was not the fruit but the wrongdoing itself, shared with friends. | Confessions | Augustine of Hippo | *Augustine; ~confessed; boy; ~stole, theft; pears; ~want; ~eat, hungry; ~concluded; ~loved; fruit; wrongdoing, wrong, sin, evil; ~shared; friends",
+  "Schopenhauer compared human society to a group of porcupines who huddle together for warmth, are driven apart by each other's quills, and at last settle on a distance at which they can bear one another. | Parerga and Paralipomena | Arthur Schopenhauer | *Schopenhauer; ~compared; [human] society; porcupines, hedgehogs; ~huddle; warmth, warm, cold; ~driven; [apart]; quills, spines, pain, hurt, prick; ~settle; distance; ~bear",
+];
+/*LOGIC-END*/
+
+/* ---------- page ---------- */
+const keep = {
+  read(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } },
+  write(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* works without storage */ } }
+};
+const $ = (id) => document.getElementById(id);
+const now = () => performance.now();
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const fmt = (v) => String(Math.round(v * 100) / 100);      // points: 1, 0.8, 0.86
+const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+const mean = (list) => list.reduce((sum, v) => sum + v, 0) / list.length;
+function clockText(ms) {                                   // session time left, 03:42
+  const t = Math.max(0, Math.ceil(ms / 1000));
+  return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+}
+function span(ms) {                                        // 14.2 s, or 1:44 once it is long
+  if (ms < 99950) return (ms / 1000).toFixed(1) + ' s';
+  const t = Math.round(ms / 1000);
+  return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+}
+
+const set = { kinds: [MODES[0]], sea: 1, wm: 1, pics: false };   // the first screen's choices: the image categories, the two levels, and whether images also run during recall
+let run = null;                                            // the session in progress, or null
+let view = 'setup';                                        // the screen between sessions: 'setup' or 'results'
+
+/* ---------- the library: images for the window, text for the phrases ---------- */
+const IMAGE = /\.(?:jpe?g|png|webp|gif|avif|bmp|svg)$/i;
+const SERVED = /^https?:$/.test(location.protocol);        // a page opened as a file on its own is not allowed to ask what the folders beside it hold
+/* What a page opened as a file can still do is show pictures whose names it already knows. These are the three
+   practice pictures each folder shipped with; once the page is hosted, the folder is read instead and this list is idle. */
+const PRACTICE = ['placeholder_01.webp', 'placeholder_02.png', 'placeholder_03.png'];
+const SHIPPED = Object.fromEntries(MODES.map((k) => [k, PRACTICE]));
+const PREVIEW = window.AXIOM_PREVIEW || null;        // a single-file preview carries its pictures and text inside it
+const addressOf = (folder, name) => /^data:/.test(name) ? name : new URL(folder + '/' + encodeURIComponent(name), document.baseURI).href;
+async function getJSON(url, init) {
+  const r = await fetch(url, init);
+  if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+/* GitHub Pages cannot list a folder, but the repository can be asked what it holds. The repository is read off
+   the address, <owner>.github.io/<repo>/, so there is nothing to configure: upload an image and it is in use. */
+let pages = null;                                          // { at, base }: the answer, kept so that it is asked for once and not per folder
+function githubBase(fresh) {
+  if (!pages || (fresh && now() - pages.at > 60000)) {
+    const before = pages && pages.base;                    // if asking again fails, the earlier answer still stands
+    pages = { at: now(), base: findBase().then((found) => found || before || null) };
+  }
+  return pages.base;
+}
+async function findBase() {
+  const host = /^([a-z0-9-]+)\.github\.io$/i.exec(location.hostname);
+  if (!host) return null;
+  const owner = host[1];
+  const dirs = location.pathname.replace(/[^/]*$/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  const page = decodeURIComponent(location.pathname.split('/').pop()) || 'index.html';
+  const guesses = dirs.length ? [[dirs[0], dirs.slice(1)], [dirs[0], ['docs'].concat(dirs.slice(1))]] : [];
+  guesses.push([owner + '.github.io', dirs]);              // a user site: the pages are the repository <owner>.github.io
+  for (const [repo, path] of guesses) {
+    const url = 'https://api.github.com/repos/' + owner + '/' + encodeURIComponent(repo) + '/contents' + path.map((d) => '/' + encodeURIComponent(d)).join('');
+    try {
+      const list = await getJSON(url);
+      if (Array.isArray(list) && list.some((f) => f.name === page)) return { url, folders: list.filter((f) => f.type === 'dir').map((f) => f.name) };
+    } catch (e) {
+      if (e.status === 403 || e.status === 429) break;     // the hourly allowance is spent: stop asking
+    }
+  }
+  return null;
+}
+/* The image names in a folder, from the first of these that answers: the GitHub repository, a manifest.json in the
+   folder (a plain list of file names, for hosts that are not GitHub), the folder listing a local test server
+   gives, the list saved from an earlier visit, and last the names the page shipped with. The answer carries the
+   folder's name as the host spells it: GitHub tells Basic from basic, and the repository says which it is. */
+const lists = new Map();                                   // folder -> { at, found }, so a folder is read once and not per session
+function listFolder(folder, fresh) {
+  const hit = lists.get(folder);
+  if (hit && !(fresh && now() - hit.at > 30000)) return hit.found;
+  const found = readFolder(folder, fresh);
+  lists.set(folder, { at: now(), found });
+  return found;
+}
+async function readFolder(folder, fresh) {
+  if (PREVIEW) return { dir: folder, names: (PREVIEW.images && PREVIEW.images[folder]) || [] };   // a preview holds all it has; it asks nobody
+  const shipped = { dir: folder, names: SHIPPED[folder] || [] };
+  if (!SERVED) return shipped;
+  const saved = 'axiom.folder.' + folder;
+  const images = (names) => [...new Set(names)].filter((n) => typeof n === 'string' && IMAGE.test(n)).sort();
+  const done = (dir, names) => { const found = { dir, names: images(names) }; if (found.names.length) keep.write(saved, found); return found; };
+  const base = await githubBase(fresh);
+  if (base) {
+    const dir = base.folders.includes(folder) ? folder : base.folders.find((f) => f.toLowerCase() === folder.toLowerCase());
+    if (!dir) return { dir: folder, names: [] };
+    try { return done(dir, (await getJSON(base.url + '/' + encodeURIComponent(dir))).filter((f) => f.type === 'file').map((f) => f.name)); } catch (e) { /* try the next way */ }
+  }
+  try {
+    const m = await getJSON(folder + '/manifest.json', { cache: 'no-cache' });
+    const found = done(folder, Array.isArray(m) ? m : m.images || []);
+    if (found.names.length) return found;
+  } catch (e) { /* no manifest */ }
+  try {
+    const r = await fetch(folder + '/', { cache: 'no-cache' });
+    if (r.ok && /html/i.test(r.headers.get('content-type') || '')) {
+      const page = new DOMParser().parseFromString(await r.text(), 'text/html');
+      const found = done(folder, [...page.querySelectorAll('a[href]')].map((a) => { try { return decodeURIComponent(a.getAttribute('href').split(/[?#]/)[0].split('/').pop()); } catch (e) { return ''; } }));
+      if (found.names.length) return found;
+    }
+  } catch (e) { /* no listing */ }
+  const old = keep.read(saved);
+  const last = old && typeof old.dir === 'string' && Array.isArray(old.names) ? { dir: old.dir, names: images(old.names) } : null;
+  return last && last.names.length ? last : shipped;
+}
+/* What a session has to work with: the images of its categories and the phrases of its working-memory level. A
+   category whose folder has nothing to show is left out; if none has anything the window stays empty, and if a text
+   file cannot be read the built-in phrases are used. The first screen says so in each case. */
+const shelf = { images: new Map(), folders: new Map(), text: new Map() };
+const stale = (hit, fresh) => !hit || (fresh && now() - hit.at > 30000);
+async function folderImages(folder, fresh) {
+  const hit = shelf.folders.get(folder);
+  if (!stale(hit, fresh)) return hit.data;
+  const found = await listFolder(folder, fresh);
+  const all = found.names.map((n) => addressOf(found.dir, n));
+  let shows = false;                                       // a name is not yet a picture: see that one of the first few loads
+  for (const url of all.slice(0, 3)) if (await warm(url)) { shows = true; break; }
+  const data = shows ? all : [];
+  shelf.folders.set(folder, { at: now(), data });
+  return data;
+}
+async function imagesFor(kinds, fresh) {
+  const key = kinds.join(','), hit = shelf.images.get(key);
+  if (!stale(hit, fresh)) return hit.data;
+  const lists = await Promise.all(kinds.map((k) => folderImages(imageFolder(k), fresh)));
+  const data = { wanted: kinds, empty: kinds.filter((_, i) => !lists[i].length), list: [].concat(...lists) };
+  shelf.images.set(key, { at: now(), data });
+  return data;
+}
+async function textFor(level, fresh) {
+  const hit = shelf.text.get(level);
+  if (!stale(hit, fresh)) return hit.data;
+  const wanted = textFile(level);
+  let body = PREVIEW && PREVIEW.text ? PREVIEW.text[wanted] : null, data = null;
+  if (body == null && SERVED && !PREVIEW) try {
+    const r = await fetch(wanted, { cache: 'no-cache' });
+    if (r.ok) body = await r.text();
+  } catch (e) { /* built-in phrases below */ }
+  if (body != null) { const got = phrasesFor(level, entriesOf(body)); if (got.list.length) data = Object.assign(got, { wanted, file: wanted }); }
+  if (!data) data = Object.assign(phrasesFor(level, entriesOf(SAMPLES.join('\n'))), { wanted, file: '' });
+  shelf.text.set(level, { at: now(), data });
+  return data;
+}
+
+/* ---------- the first screen ---------- */
+function drawNote() {                                      // empty unless something the page needs is missing
+  const im = shelf.images.get(set.kinds.join(',')), tx = shelf.text.get(set.wm), say = [];
+  if (im && im.data.empty.length) {
+    const names = im.data.empty, list = names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+    if (!SERVED && !im.data.list.length) say.push('No images found beside this file, so the image window will be empty.');
+    else say.push('No images found in the ' + list + ' folder' + (names.length > 1 ? 's' : '') + (im.data.list.length ? ', so ' + (names.length > 1 ? 'those categories are' : 'that category is') + ' left out.' : ', so the image window will be empty.'));
+  }
+  if (tx) {
+    const d = tx.data, range = WM[set.wm - 1].words;
+    if (!d.file) say.push((SERVED ? d.wanted + ' could not be read' : 'A page opened as a file cannot read ' + d.wanted) + ', so built-in sample phrases are used.');
+    else if (d.fit < d.list.length) say.push('Only ' + d.fit + ' of the sentences in ' + d.file + ' have ' + range[0] + ' to ' + range[1] + ' words, so the ' + d.list.length + ' nearest in length are used.');
+  }
+  $('note').textContent = say.join(' ');
+}
+async function survey() {
+  const kinds = set.kinds.join(','), wm = set.wm;
+  drawNote();
+  await Promise.all([imagesFor(set.kinds), textFor(wm)]);
+  if (set.kinds.join(',') === kinds && set.wm === wm) drawNote();
+}
+function minutesTyped() {
+  const v = parseFloat($('session-min').value);
+  return isFinite(v) && v > 0 ? Math.min(v, 999) : 0;
+}
+function draw() {                                          // one screen at a time
+  const phase = run ? run.phase : view;
+  document.body.dataset.phase = phase;
+  $('setup').hidden = phase !== 'setup';
+  $('stop').hidden = !run;
+  $('wait').hidden = !(run && phase === 'loading' && run.slow);
+  $('memo').hidden = phase !== 'memorize' && phase !== 'recall';
+  $('frame').hidden = !(phase === 'memorize' || (phase === 'recall' && run.pics));   // the window: while memorizing, and during recall if asked for
+  $('fuse-track').style.visibility = phase === 'memorize' ? '' : 'hidden';           // only memorizing is timed: the bar and its countdown
+  $('told').hidden = phase !== 'memorize';
+  $('phrase').hidden = phase !== 'memorize';
+  $('source').hidden = phase !== 'memorize' || !$('source').firstChild;              // the footnote, when the phrase has one
+  $('reply').hidden = phase !== 'recall';
+  $('field').hidden = phase !== 'spheres';
+  $('review').hidden = phase !== 'review';
+  $('results').hidden = phase !== 'results';
+  $('status').hidden = !(run && (LIVE.includes(phase) || phase === 'review'));
+  drawStatus();
+}
+/* The strip at the foot of the screen through a session: the difficulty in force, and the session time left. The
+   timer runs while a segment is being played and stands still, marked as paused, while its review is read. */
+const LIVE = ['memorize', 'spheres', 'recall'];
+function drawStatus() {
+  const r = run;
+  if (!r) return;
+  const live = LIVE.includes(r.phase);
+  $('status-level').textContent = levelsText(r);
+  $('status-clock').textContent = live || r.time <= 0 ? 'Session' : 'Session paused';   // at 00:00 there is nothing left to pause
+  $('status-time').textContent = clockText(live ? r.time - (now() - r.began) : r.time);
+}
+
+/* ---------- the image window ---------- */
+const ready = new Map();                                   // address -> a decoded picture, ready to drop into the window
+const loading = new Map();                                 // address -> the load in progress, so nothing is fetched twice at once
+function warm(url) {
+  if (ready.has(url)) return Promise.resolve(true);
+  if (!loading.has(url)) loading.set(url, new Promise((done) => {
+    const img = new Image();
+    const end = (ok) => { loading.delete(url); if (ok) ready.set(url, img); done(ok); };
+    img.alt = '';
+    img.draggable = false;
+    img.onload = () => { if (img.decode) img.decode().then(() => end(true), () => end(true)); else end(true); };
+    img.onerror = () => end(false);
+    img.src = url;
+  }));
+  return loading.get(url);
+}
+/* Which picture comes next is drawn at random from the mode's folder (drawPicture above). The draws are made a few
+   ahead of the window, so that a picture is loaded by the time it is due, but never the whole library at once: a
+   folder of hundreds costs no more than a folder of ten. A picture that will not load is dropped for the session. */
+const AHEAD = 5, KEPT = 24;
+function deal(r) {
+  const pool = r.all.filter((u) => !r.bad.has(u));
+  const want = Math.min(AHEAD, Math.max(1, pool.length - 1));
+  while (pool.length && r.hand.length < want) {
+    const url = drawPicture(pool, r.trail);
+    r.trail.push(url);
+    if (r.trail.length > 4 * RECENT) r.trail.shift();
+    r.hand.push(url);
+    warm(url).then((ok) => {
+      if (ok || run !== r) return;
+      r.bad.add(url);
+      r.hand = r.hand.filter((u) => u !== url);
+      r.trail = r.trail.filter((u) => u !== url);
+      deal(r);
+    });
+  }
+}
+async function stock(r, list) {                            // the first few pictures are in hand before the session clock starts
+  r.all = list.slice();
+  deal(r);
+  await Promise.race([Promise.all(r.hand.map(warm)), new Promise((done) => setTimeout(done, 6000))]);
+}
+function nextImage(r) {
+  const at = r.hand.findIndex((u) => ready.has(u) && u !== r.showing);
+  if (at >= 0) {
+    const url = r.hand.splice(at, 1)[0];
+    r.showing = url;
+    $('window').replaceChildren(ready.get(url));
+    for (const old of ready.keys()) {                      // let go of pictures shown long ago; they load again from the browser's cache
+      if (ready.size <= KEPT) break;
+      if (old !== url && !r.hand.includes(old)) ready.delete(old);
+    }
+  }
+  deal(r);
+}
+
+/* ---------- the meaning model ---------- */
+/* A small sentence model (all-MiniLM-L6-v2, about 23 MB, kept in the browser's cache after the first visit), loaded
+   from public CDNs in the background as soon as the page opens. Grading never waits on it for more than a few
+   seconds: if it cannot load (offline, blocked, too slow), recalls are graded on the cues alone and the review
+   says so. A page can also supply its own comparison as window.AXIOM_MEANING(a, b) -> cosine, which the tests use. */
+const MEANING = { lib: 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3', model: 'Xenova/all-MiniLM-L6-v2', wait: 4000 };
+let embedder = null;
+function loadMeaning() {
+  if (window.AXIOM_MEANING) return Promise.resolve(window.AXIOM_MEANING);
+  if (!embedder) embedder = import(MEANING.lib)
+    .then((t) => { t.env.allowLocalModels = false; return t.pipeline('feature-extraction', MEANING.model, { dtype: 'q8' }); })
+    .then((pipe) => async (a, b) => {
+      const [x, y] = (await pipe([a, b], { pooling: 'mean', normalize: true })).tolist();
+      return x.reduce((sum, v, i) => sum + v * y[i], 0);
+    })
+    .catch(() => null);
+  return embedder;
+}
+async function meaningOf(a, b) {                             // 0 to 1, or null when the model is not available
+  if (!b.trim()) return 0;
+  try {
+    const cosine = await Promise.race([loadMeaning(), new Promise((done) => setTimeout(() => done(null), MEANING.wait))]);
+    if (!cosine) return null;
+    return meaningShare(await cosine(a, b));
+  } catch (e) { return null; }
+}
+/* a recall graded: the cues it held, the meaning score, the wording score, and the comprehension they make */
+function grade(entry, typed, meaning) {
+  const wording = compare(entry.s, typed), checks = ideasFound(ideasOf(entry.ideas), typed);
+  const value = typed.trim() ? comprehension(checks, meaning, wording.value) : 0;
+  return { value, percent: percentOf(value), checks, meaning, wording };
+}
+
+/* ---------- a session ---------- */
+async function start() {
+  if (run) return;
+  const minutes = minutesTyped(), memo = memorizeSeconds($('memo-sec').value);
+  if (!memo) { $('memo-sec').focus(); return; }
+  if (!minutes) { $('session-min').focus(); return; }
+  const r = run = {
+    kinds: set.kinds.slice(), sea: set.sea, wm: set.wm, pics: set.pics, memo,
+    from: { sea: set.sea, wm: set.wm },                      // where the difficulty stood when the session began
+    recent: [],                                              // the comprehension of each recall made at the present difficulty
+    time: minutes * 60000, phase: 'loading', rounds: [], round: null,
+    texts: new Map(), piles: new Map(),                      // per working-memory level: its phrases, and those not yet shown
+    all: [], hand: [], trail: [], bad: new Set(),            // the pictures of the chosen categories; those drawn and loading; the run of draws so far; those that will not load
+  };
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // so a stray Space does not press a button
+  r.tick = setInterval(() => { if (run === r) drawStatus(); }, 200);   // keeps the session timer at the foot of the screen in step with the clock
+  draw();
+  setTimeout(() => { if (run === r && r.phase === 'loading') { r.slow = true; draw(); } }, 400);   // say so only if loading takes a moment
+  const [im, phrases] = await Promise.all([imagesFor(r.kinds, true), phrasesAt(r, r.wm)]);
+  if (run !== r) return;
+  drawNote();
+  r.phrases = phrases;
+  await stock(r, im.list);
+  if (run !== r) return;
+  memorize();
+}
+/* The phrases of a working-memory level, read once a session. The levels on either side are read along with it, so
+   that when the difficulty moves the next segment does not have to wait for a file. */
+function phrasesAt(r, level) {
+  const read = (n) => { if (n >= 1 && n <= LEVELS && !r.texts.has(n)) r.texts.set(n, textFor(n, true).then((tx) => tx.list)); };
+  read(level); read(level + 1); read(level - 1);
+  return r.texts.get(level);
+}
+/* What happens next and when. Browsers slow the timers of a tab that is out of sight, so when the tab comes back
+   anything already due is done at once instead of whenever the slowed timer gets round to it. */
+function later(r, ms, then) {
+  clearTimeout(r.phaseT);
+  r.due = now() + ms;
+  r.then = then;
+  r.phaseT = setTimeout(() => { if (run === r && r.then === then) { r.then = null; then(); } }, ms);
+}
+document.addEventListener('visibilitychange', () => {
+  const r = run;
+  if (document.hidden || !r || !r.then || now() < r.due) return;
+  const then = r.then;
+  clearTimeout(r.phaseT);
+  r.then = null;
+  then();
+});
+function nextPhrase(r) {
+  let pile = r.piles.get(r.wm);                            // every phrase of a level once before any comes round again
+  if (!pile || !pile.length) r.piles.set(r.wm, pile = shuffle(r.phrases.slice()));
+  let entry = pile.pop();
+  if (r.round && entry.s === r.round.phrase && pile.length) { pile.unshift(entry); entry = pile.pop(); }
+  return entry;
+}
+/* the footnote of a phrase: the title of the text it refers to, in italics, then the author */
+const sourceOf = (e) => (e.title ? '<cite>' + esc(e.title) + '</cite>' : '') + (e.title && e.author ? ', ' : '') + esc(e.author || '');
+
+/* The window changes pictures on the beat of the selective-attention level for as long as the step lasts. The beat
+   is counted from the start of the step, so the rhythm cannot drift; beats missed while the tab was out of sight are
+   skipped, never played back in a burst. */
+function cycle(r, step, until) {
+  const beat = SEA[r.sea - 1].swap * 1000, t0 = now();
+  const swap = () => {
+    if (run !== r || r.phase !== step || now() > until - 50) return;             // no new picture in the instant a timed step ends
+    nextImage(r);
+    r.swapT = setTimeout(swap, Math.max(0, t0 + (Math.round((now() - t0) / beat) + 1) * beat - now()));
+  };
+  clearTimeout(r.swapT);
+  nextImage(r);
+  r.swapT = setTimeout(swap, beat);
+}
+
+/* step 1: the phrase under the window, the window changing pictures, for the time the two levels allow */
+function memorize() {
+  const r = run, t0 = now();
+  r.window = r.memo * 1000;                                // the memorization window the player set
+  const end = t0 + r.window;
+  const entry = nextPhrase(r);
+  r.round = { entry, phrase: entry.s, misses: 0, sea: r.sea, wm: r.wm };
+  r.began = t0;                                            // the session clock runs from here until the rewrite is handed in
+  r.phase = 'memorize';
+  $('phrase').textContent = r.round.phrase;
+  $('source').innerHTML = sourceOf(entry);
+  draw();
+  cycle(r, 'memorize', end);
+  const drain = () => {                                    // the bar under the window and the seconds beside it, read off the clock each frame
+    if (run !== r || r.phase !== 'memorize') return;
+    const left = Math.max(0, end - now()), seconds = Math.ceil(left / 1000) + ' s';
+    $('fuse').style.transform = 'scaleX(' + left / r.window + ')';
+    if ($('count').textContent !== seconds) $('count').textContent = seconds;
+    r.frame = requestAnimationFrame(drain);
+  };
+  drain();
+  later(r, r.window, spheres);
+}
+
+/* step 2: forty-five spheres in two colors; it ends when every sphere of the rarer color has been selected */
+function spheres() {
+  const r = run, level = SEA[r.sea - 1];
+  clearTimeout(r.swapT);
+  $('window').replaceChildren();
+  $('phrase').textContent = '';
+  $('source').replaceChildren();
+  const count = level.odd[0] + randInt(level.odd[1] - level.odd[0] + 1);
+  r.odd = new Set(shuffle(Array.from({ length: 45 }, (_, i) => i)).slice(0, count));
+  r.left = count;
+  const colors = twoColors(level.gap), names = coin() ? ['a', 'b'] : ['b', 'a'];   // which class is the rare one changes too
+  const field = $('field');
+  names.forEach((name, k) => { for (const part of ['hi', 'mid', 'lo']) field.style.setProperty('--' + name + '-' + part, colors[k][part]); });
+  field.innerHTML = Array.from({ length: 45 }, (_, i) =>
+    '<button type="button" class="orb ' + names[r.odd.has(i) ? 1 : 0] + '" data-i="' + i + '" aria-pressed="false" aria-label="Sphere, row ' + (Math.floor(i / 9) + 1) + ', column ' + (i % 9 + 1) + '"><span class="ball"></span></button>').join('');
+  r.phase = 'spheres';
+  draw();
+  r.t0 = now();
+}
+function pressSphere(orb) {
+  const r = run;
+  if (!r || r.phase !== 'spheres' || !r.left || orb.classList.contains('picked')) return;
+  if (r.odd.has(+orb.dataset.i)) {
+    orb.classList.add('picked');
+    orb.setAttribute('aria-pressed', 'true');
+    if (--r.left === 0) {
+      r.round.sphereMs = now() - r.t0;
+      later(r, 350, recall);                               // long enough to see the last ring close
+    }
+  } else {
+    r.round.misses++;
+    orb.classList.remove('off');
+    void orb.offsetWidth;
+    orb.classList.add('off');
+    setTimeout(() => orb.classList.remove('off'), 450);
+  }
+}
+
+/* step 3: the box; it waits for as long as the rewrite takes, and grows so that a long rewrite stays in view whole */
+function fitBox() {
+  const box = $('answer');
+  box.style.height = '';
+  if (box.scrollHeight > box.clientHeight) box.style.height = box.scrollHeight + box.offsetHeight - box.clientHeight + 'px';
+}
+function recall() {
+  const r = run;
+  r.phase = 'recall';
+  draw();
+  $('answer').value = '';
+  fitBox();
+  if (r.pics) cycle(r, 'recall', Infinity);                // the window keeps changing over the box until the rewrite is handed in
+  $('answer').focus();
+  r.t0 = now();
+}
+async function submit() {
+  const r = run;
+  if (!r || r.phase !== 'recall' || r.grading) return;
+  const round = r.round, typed = $('answer').value;
+  round.recallMs = now() - r.t0;
+  r.time -= now() - r.began;                               // only the time spent inside a segment counts against the session
+  clearTimeout(r.swapT);
+  $('window').replaceChildren();
+  r.grading = true;                                        // the meaning model takes a moment; the box waits, and its time does not count
+  $('submit').textContent = 'Grading';
+  const meaning = await meaningOf(round.phrase, typed);
+  r.grading = false;
+  $('submit').textContent = 'Submit';
+  if (run !== r) return;
+  round.result = grade(round.entry, typed, meaning);
+  r.rounds.push(round);
+  /* the skill scalar: three recalls at this difficulty, and their average moves both levels up, down or not at all */
+  r.recent.push(round.result.percent);
+  const step = skillStep(r.recent), to = stepped(r.sea, r.wm, step);
+  round.shift = to.sea !== r.sea || to.wm !== r.wm ? step : 0;
+  if (round.shift) {
+    r.sea = to.sea;
+    r.wm = to.wm;
+    r.recent = [];
+    phrasesAt(r, r.wm);                                      // have the new level's phrases in hand by the next segment
+  }
+  review(r);
+}
+
+/* ---------- the review: the root phrase with its cues marked held or lost, the recall, the counts, and a button ---------- */
+const levelsText = (at) => 'SeA ' + at.sea + ', WM ' + at.wm;
+const CUE = { held: 'held', loose: 'recalled, but not what it describes', lost: 'lost' };
+const cueState = (c) => c.counts ? 'held' : c.found ? 'loose' : 'lost';
+const cueTag = (c, text) => '<b class="cue ' + (c.kind === 'name' || c.kind === 'noun' ? 'heavy ' : '') + cueState(c) + '" title="' + c.kind + ', ' + CUE[cueState(c)] + '">' + esc(text) + '</b>';
+function review(r) {
+  const res = r.round.result, checks = res.checks, n = cueCounts(checks);
+  const row = (label, value, cls) => '<tr><td><b' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(label) + '</b></td><td>' + esc(value) + '</td></tr>';
+  const marks = cuesIn(r.round.phrase, checks), seen = new Set(marks.list.map((k) => k.cue));
+  let text = '', last = 0;
+  for (const k of marks.list) {                            // the root phrase, each cue in it marked by how it fared
+    const word = marks.chars.slice(k.at, k.end).join('');
+    text += esc(marks.chars.slice(last, k.at).join('')) + (k.cue < 0 ? esc(word) : cueTag(checks[k.cue], word));
+    last = k.end;
+  }
+  $('score').textContent = res.percent + '%';
+  $('root-toks').innerHTML = text + esc(marks.chars.slice(last).join(''));
+  $('root-toks').classList.toggle('cued', checks.length > 0);
+  const told = (state, lead) => { const list = checks.filter((c) => cueState(c) === state).map((c) => c.label); return list.length ? lead + list.join(', ') + '. ' : ''; };
+  $('root-heard').textContent = told('lost', 'Cues lost: ') + told('loose', 'Details recalled without what they describe: ');   // what the colors say, in words
+  $('yours-toks').innerHTML = $('answer').value.trim() ? esc($('answer').value.trim()) : '<span class="none">nothing typed</span>';
+  $('root-source').innerHTML = sourceOf(r.round.entry);
+  $('root-source').hidden = !$('root-source').firstChild;
+  $('root-worth').textContent = '';
+  $('yours-worth').textContent = '';
+  $('ideas').innerHTML = checks.map((c, i) => seen.has(i) ? '' : cueTag(c, c.label)).join('');   // cues the file names in words the phrase does not use
+  $('tally').innerHTML = [['name', 'Names'], ['noun', 'Nouns'], ['detail', 'Details'], ['verb', 'Verbs']]
+    .map(([kind, label]) => n[kind].of ? row(label, n[kind].held + ' of ' + n[kind].of) + (kind === 'detail' && n.loose ? row('Details without their noun', n.loose, 'cue loose') : '') : '').join('')
+    + row('Meaning match', res.meaning == null ? 'not available' : percentOf(res.meaning) + '%')
+    + row('Wording accuracy', res.wording.percent + '%');
+  $('shift').hidden = !r.round.shift;                      // said only when this recall has just moved the difficulty
+  $('shift-way').textContent = r.round.shift > 0 ? 'Difficulty raised' : 'Difficulty lowered';
+  $('shift-to').textContent = levelsText(r);
+  $('next').textContent = r.time > 0 ? 'Start next segment' : 'View session results';   // nothing moves on until this is pressed
+  r.phase = 'review';
+  r.shownAt = now();
+  draw();
+  $('review').parentNode.scrollTop = 0;
+}
+async function onward() {
+  const r = run;
+  if (!r || r.phase !== 'review' || r.fetching) return;
+  if (r.time <= 0) { finish(); return; }                   // when the session time is used up, the segment just reviewed was the last
+  r.fetching = true;                                       // in hand already, unless the level has just moved and its file is slow to arrive
+  let phrases = r.phrases;
+  try { phrases = await phrasesAt(r, r.wm); } catch (e) { /* keep the phrases of the level before */ }
+  r.fetching = false;
+  if (run !== r || r.phase !== 'review') return;
+  r.phrases = phrases;
+  memorize();
+}
+
+/* ---------- the end of a session: the three averages ---------- */
+function finish() {
+  const r = run;
+  if (!r) return;
+  run = null;
+  clearInterval(r.tick);
+  clearTimeout(r.phaseT);
+  clearTimeout(r.swapT);
+  cancelAnimationFrame(r.frame);
+  $('window').replaceChildren();
+  $('field').replaceChildren();
+  $('phrase').textContent = '';
+  $('source').replaceChildren();
+  view = r.rounds.length ? 'results' : 'setup';            // stopped before a round was finished: straight back to the first screen
+  if (r.rounds.length) {
+    const exact = r.rounds.every((x) => x.result.percent === 100);
+    $('avg-accuracy').textContent = (exact ? 100 : Math.min(99, Math.round(100 * mean(r.rounds.map((x) => x.result.value))))) + '%';
+    $('avg-recall').textContent = span(mean(r.rounds.map((x) => x.recallMs)));
+    $('avg-sphere').textContent = span(mean(r.rounds.map((x) => x.sphereMs)));
+    $('ended').hidden = r.sea === r.from.sea && r.wm === r.from.wm;     // said only if the session moved the difficulty
+    $('ended-at').textContent = levelsText(r);
+  }
+  if (r.sea !== set.sea || r.wm !== set.wm) {              // the next session starts where this one left the difficulty
+    set.sea = r.sea;
+    set.wm = r.wm;
+    showLevels();
+    remember();
+    survey();
+  }
+  draw();
+}
+
+/* ---------- wiring ---------- */
+const remember = () => keep.write('axiom.settings', { kinds: set.kinds, sea: set.sea, wm: set.wm, pics: set.pics, minutes: $('session-min').value, memo: $('memo-sec').value });
+const showLevels = () => { for (const key of ['sea', 'wm']) $(key + '-levels').querySelector('input[value="' + set[key] + '"]').checked = true; };
+const showKinds = () => $('modes').querySelectorAll('input').forEach((i) => { i.checked = set.kinds.includes(i.value); });
+$('modes').addEventListener('change', (e) => {         // any number of categories from one to five; the last one on stays on
+  const on = [...$('modes').querySelectorAll('input:checked')].map((i) => i.value);
+  if (!on.length) { e.target.checked = true; return; }
+  set.kinds = kindsOf(on);
+  remember();
+  survey();
+});
+for (const key of ['sea', 'wm']) {
+  $(key + '-levels').innerHTML = NAMES.map((_, i) => '<label><input type="radio" name="' + key + '" value="' + (i + 1) + '" aria-label="Level ' + (i + 1) + '"><span>' + (i + 1) + '</span></label>').join('');
+  $(key + '-levels').addEventListener('change', (e) => {
+    set[key] = +e.target.value;
+    remember();
+    survey();
+  });
+}
+$('pics-toggle').addEventListener('change', (e) => { set.pics = e.target.value === 'on'; remember(); });
+$('session-min').addEventListener('input', remember);
+$('memo-sec').addEventListener('input', remember);
+/* a time field is as wide as its digits, and the two are always the same size: if a long number would push its unit
+   out of its column, both get smaller together until everything fits */
+function fitTime() {
+  const boxes = [$('memo-sec'), $('session-min')];
+  for (const box of boxes) {
+    box.style.fontSize = '';
+    box.style.width = Math.max(1, Array.from(box.value).reduce((w, ch) => w + (/[.,]/.test(ch) ? 0.45 : 1), 0)) + 0.15 + 'ch';
+  }
+  const over = () => boxes.some((box) => box.parentNode.scrollWidth > box.parentNode.clientWidth + 0.5);
+  for (let size = parseFloat(getComputedStyle(boxes[0]).fontSize); over() && size > 24; size -= 2) boxes.forEach((box) => { box.style.fontSize = size - 2 + 'px'; });
+}
+for (const id of ['memo-sec', 'session-min']) $(id).addEventListener('input', fitTime);
+addEventListener('resize', fitTime);
+/* Start and Submit are plain buttons, not forms: a page shown inside a sandboxed preview is not allowed to submit one */
+function begin() {
+  start().catch((e) => {                                   // if anything stops a session from starting, say what, never nothing
+    run = null;
+    view = 'setup';
+    draw();
+    $('note').textContent = 'The session could not start: ' + (e && e.message ? e.message : e);
+  });
+}
+$('go').addEventListener('click', begin);
+for (const id of ['session-min', 'memo-sec']) $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); begin(); } });
+$('stop').addEventListener('click', finish);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && run) finish(); });
+$('field').addEventListener('click', (e) => { const orb = e.target.closest('.orb'); if (orb) pressSphere(orb); });
+$('submit').addEventListener('click', submit);
+$('answer').addEventListener('input', fitBox);
+$('answer').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || e.isComposing) return;
+  e.preventDefault();                                      // a phrase is one line: Enter hands it in, and an empty box is not handed in by accident
+  if ($('answer').value.trim()) submit();
+});
+$('next').addEventListener('click', onward);
+document.addEventListener('keydown', (e) => {              // Enter also moves on, but not the Enter that has just handed in the rewrite
+  if (e.key === 'Enter' && !e.repeat && run && run.phase === 'review' && now() - run.shownAt > 500) { e.preventDefault(); onward(); }
+});
+$('again').addEventListener('click', () => { view = 'setup'; draw(); fitTime(); });
+
+const saved = keep.read('axiom.settings') || {};
+set.kinds = kindsOf(saved.kinds);
+showKinds();
+for (const key of ['sea', 'wm']) if (Number.isInteger(saved[key]) && saved[key] >= 1 && saved[key] <= LEVELS) set[key] = saved[key];
+showLevels();
+set.pics = saved.pics === true;
+$('pics-toggle').querySelector('input[value="' + (set.pics ? 'on' : 'off') + '"]').checked = true;
+if (parseFloat(saved.minutes) > 0) $('session-min').value = saved.minutes;
+if (memorizeSeconds(saved.memo)) $('memo-sec').value = saved.memo;
+fitTime();
+draw();
+survey();
+setTimeout(loadMeaning, 800);                              // in the background, so the first segment does not wait for it
+})();
+</script>
+</body>
+</html>

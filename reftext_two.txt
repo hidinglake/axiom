@@ -1,0 +1,73 @@
+# Working memory level 2: root phrases of 12 to 13 words.
+# One phrase to a line, then a bar and the text it refers to, a bar and the author (if any), a bar and the cues of the phrase.
+# Cues are separated by semicolons, in the order of the phrase: *a name, a noun, ~a verb, and [a detail] beside the cue it describes.
+# After a comma, other words that count as the same cue. The README says how they are graded.
+# A line that begins with # is a note and is never shown.
+
+# Philosophy
+In the Apology, Socrates says he would rather die than stop asking questions. | Apology | Plato | *Apology; *Socrates; ~says; ~die; ~stop, quit, abandon; ~asking, philosophy; questions
+Kant held that people must never be treated merely as tools for others. | Groundwork of the Metaphysics of Morals | Immanuel Kant | *Kant; ~held; people, humans; ~treated; tools, means, instruments, used, objects; others
+Seneca wrote that life is long enough if we do not waste it. | On the Shortness of Life | Seneca | *Seneca; ~wrote; life [long]; ~waste, squander
+Heraclitus taught that everything changes, like a river that never stays the same. | Fragments | Heraclitus | *Heraclitus; ~taught; ~changes, flux; river, stream; ~stays
+In the Analects, Confucius teaches that a ruler should lead by good example. | Analects | Confucius | *Analects; *Confucius; ~teaches; ruler, leader, king; ~lead, govern, rule; [good] example, model, virtue
+Aristotle argued that everything in nature acts for the sake of some end. | Physics | Aristotle | *Aristotle, Physics; ~argued; nature; ~acts; end, purpose, goal, aim
+Descartes claimed that mind and body are two entirely different kinds of substance. | Meditations on First Philosophy | René Descartes | *Descartes; ~claimed; mind; body; [two] [different, distinct, separate] substance
+Parmenides argued that change is an illusion and that being is one. | On Nature | Parmenides | *Parmenides; ~argued; change; illusion, unreal, impossible; being; [one, single, unity]
+Epictetus compared life to a play whose part we must simply act well. | Enchiridion | Epictetus | *Epictetus; ~compared; life; play, drama, role; part; ~act, perform; [well]
+Locke defined a person as a thinking being who remembers its past self. | An Essay Concerning Human Understanding | John Locke | *Locke; ~defined; person; [thinking, conscious, consciousness] being; ~remembers, memory; [past] self, identity
+Bentham proposed that pleasure and pain alone should guide every moral judgment. | An Introduction to the Principles of Morals and Legislation | Jeremy Bentham | *Bentham; ~proposed; pleasure; pain; ~guide; [moral, ethics] judgment, right
+Wittgenstein held that the limits of language mark the limits of our world. | Tractatus Logico-Philosophicus | Ludwig Wittgenstein | *Wittgenstein; ~held; limits, boundary; language; ~mark; world
+Zeno devised paradoxes suggesting that a runner could never finish any race. | Physics | Aristotle | *Zeno, Aristotle; ~devised; paradoxes; ~suggesting; runner, running; ~finish, impossible; race, motion
+Kierkegaard described anxiety as the dizziness a person feels when facing freedom. | The Concept of Anxiety | Søren Kierkegaard | *Kierkegaard; ~described; anxiety, dread, angst; dizziness, vertigo; person; ~feels; ~facing; freedom
+Mill held that a dissatisfied human is better off than a satisfied pig. | Utilitarianism | John Stuart Mill | *Mill, Utilitarianism; ~held; [dissatisfied, unhappy, unsatisfied] human, man, person [better]; [satisfied, content, happy] pig, fool, animal
+
+# Ideology
+Gandhi taught that unjust rule should be resisted firmly but without violence. | Hind Swaraj | Mohandas K. Gandhi | *Gandhi, Swaraj; ~taught; [unjust, injustice, oppressive] rule; ~resisted, oppose; [firmly]; violence, nonviolence, peaceful, peacefully
+In his Reflections, Burke warned that tearing down old institutions invites chaos. | Reflections on the Revolution in France | Edmund Burke | *Reflections; *Burke; ~warned; ~tearing, destroy, abolish, overthrow; [old] institutions, traditions, order; ~invites; chaos, disorder, anarchy
+Thoreau argued that a citizen should follow conscience before any unjust law. | Civil Disobedience | Henry David Thoreau | *Thoreau, Disobedience; ~argued; citizen; ~follow; conscience, morals; [unjust] law
+The Federalist Papers argued that a large republic can restrain selfish factions. | The Federalist, No. 10 | James Madison | *Federalist Papers, Federalist, Papers, Madison; ~argued; [large, big, extended] republic; ~restrain, control, check; [selfish] factions, groups, interests
+In Leviathan, Hobbes argues that people trade freedom for a ruler's protection. | Leviathan | Thomas Hobbes | *Leviathan; *Hobbes; ~argues; people; ~trade, surrender, exchange, give; freedom, liberty, rights; ruler, sovereign, king; protection, security, safety
+Locke argued that people may rightly resist a government that betrays its trust. | Second Treatise of Government | John Locke | *Locke; ~argued; people; [rightly]; ~resist, rebel, revolt, overthrow; government; ~betrays; trust, abuse
+Lenin argued that a disciplined party of professional revolutionaries must lead the workers. | What Is to Be Done? | Vladimir Lenin | *Lenin; ~argued; [disciplined] party, vanguard; [professional] revolutionaries; ~lead, guide; workers, proletariat
+Burke held that political wisdom lies in the slowly gathered experience of generations. | Reflections on the Revolution in France | Edmund Burke | *Burke; ~held; [political] wisdom; ~lies; [gathered] experience, tradition, custom; generations, ages, past, ancestors
+Hayek argued that prices carry knowledge that no central planner could ever gather. | The Use of Knowledge in Society | Friedrich Hayek | *Hayek; ~argued; prices; ~carry; knowledge, information; [central, government] planner, planning; ~gather
+Martin Luther King argued that unjust laws carry no moral claim on anyone. | Letter from Birmingham Jail | Martin Luther King Jr. | *Martin Luther King, Martin, Luther, King, Birmingham; ~argued; [unjust, unfair] laws; ~carry; [moral, obligation, obey, binding] claim
+Mazzini urged Italians to see duties to their nation as duties to humanity. | The Duties of Man | Giuseppe Mazzini | *Mazzini; ~urged; *Italians, Italy; ~see; duties; nation, country; humanity, mankind, world
+Bakunin warned that any revolutionary state would soon create a new ruling class. | Statism and Anarchy | Mikhail Bakunin | *Bakunin; ~warned; [revolutionary, revolution] state; ~create; [new] [ruling] class, elite, rulers, tyranny
+Plato warned that democracy can slide into tyranny when freedom becomes excessive. | Republic | Plato | *Plato; ~warned; democracy; ~slide; tyranny, dictatorship; freedom, liberty [excessive]; ~becomes
+Hobbes held that a divided sovereign power soon leads to civil war. | Leviathan | Thomas Hobbes | *Hobbes; ~held; [divided, split, shared] [sovereign] power, authority; ~leads; [civil] war, conflict
+Jefferson's Declaration claims that all people are created equal and hold inalienable rights. | Declaration of Independence | Thomas Jefferson | *Jefferson; *Declaration; ~claims; people [equal]; ~created; ~hold; [inalienable, unalienable, natural] rights
+
+# Religion
+In the Gita, Krishna tells Arjuna to act without clinging to results. | Bhagavad Gita | | *Gita; *Krishna; ~tells; *Arjuna; ~act, duty; ~clinging, attachment, detached; results, outcome, fruits, consequences
+The Sermon on the Mount tells its hearers to love their enemies. | Gospel of Matthew | | *Sermon on the Mount, Sermon, Mount, Jesus, Matthew; ~tells; hearers; ~love; enemies
+The book of Proverbs teaches that reverence for God is where wisdom begins. | Proverbs | | *Proverbs; ~teaches; reverence, fear, respect, awe; *God, Lord; wisdom; ~begins
+The book of Exodus tells how Moses led the Hebrews out of slavery. | Exodus | | *Exodus; ~tells; *Moses; ~led; *Hebrews, Israelites, Jews, people; slavery, slaves, bondage, Egypt
+Augustine's Confessions tells how a restless young man slowly came to faith. | Confessions | Augustine of Hippo | *Augustine; *Confessions; ~tells; [restless, wild, lost] [young] man; [slowly]; ~came; faith, God, Christianity, converted, conversion, belief
+In Genesis, Adam and Eve eat the forbidden fruit and must leave Eden. | Genesis | | *Genesis; *Adam; *Eve; ~eat; [forbidden] fruit, apple, tree; ~leave, expelled, banished; *Eden, paradise
+The Lord's Prayer asks God to forgive us as we forgive others. | Gospel of Matthew | | *Lord's Prayer, Lord, Prayer; ~asks; *God; ~forgive; others, trespass
+The Quran teaches that there is no compulsion in matters of religion. | The Quran | | *Quran; ~teaches; compulsion, force, coercion; religion, faith, belief
+The Dhammapada teaches that hatred is never ended by hatred but by love. | Dhammapada | | *Dhammapada, Buddha; ~teaches; hatred; ~ended, cease, conquer, overcome; love, kindness
+The Upanishads describe Brahman as the single reality underlying all changing things. | The Upanishads | | *Upanishads; ~describe; *Brahman, absolute, ultimate; [single, unity] reality, real; ~underlying; [changing]
+In Exodus, God speaks to Moses from a bush that is never consumed. | Exodus | | *Exodus; *God; ~speaks; *Moses; bush; ~consumed, burning, fire, flames
+The Sermon on the Mount warns against storing up treasure on earth. | Gospel of Matthew | | *Sermon on the Mount, Sermon, Mount, Jesus, Matthew; ~warns; ~storing; treasure, wealth, riches, possessions; earth, earthly
+Isaiah foresees a time when nations will beat their swords into plowshares. | Book of Isaiah | | *Isaiah; ~foresees; time; nations, peace; ~beat; swords, weapons; plowshares, ploughshares, plows, tools
+The Jain Tattvartha Sutra teaches that all living souls support one another. | Tattvartha Sutra | Umaswati | *Jain Tattvartha Sutra, Jain, Tattvartha, Sutra; ~teaches; [living] souls, beings; ~support, help, serve, interdependent, mutual
+Augustine wrote that our hearts are restless until they rest in God. | Confessions | Augustine of Hippo | *Augustine, Confessions; ~wrote; hearts, soul [restless, unrest]; ~rest, peace; *God
+
+# Human nature
+Xunzi argued that people are born selfish and must be taught goodness. | The Xunzi | | *Xunzi; ~argued; people [selfish, bad, evil, greedy]; ~born, nature; ~taught; goodness
+Aristotle called humans political animals who can only flourish in a community. | Politics | Aristotle | *Aristotle; ~called; humans; [political, social] animals, creatures; ~flourish, thrive; community, society, city, polis
+William James described the mind as a stream that never stops flowing. | The Principles of Psychology | William James | *William James, William, James, Psychology; ~described; mind, consciousness, thought; stream, river; ~stops; ~flowing
+Frankl observed that prisoners who found a purpose endured the camps better. | Man's Search for Meaning | Viktor Frankl | *Frankl; ~observed; prisoners, inmates; ~found; purpose, meaning; ~endured, survived, coped; camps; [better]
+Locke compared the newborn mind to a blank sheet that experience fills. | An Essay Concerning Human Understanding | John Locke | *Locke; ~compared; [newborn, birth, baby, infant, born] mind; [blank, empty, tabula] sheet; experience; ~fills
+Aristotle opened his Metaphysics by saying all humans naturally desire to know. | Metaphysics | Aristotle | *Aristotle; ~opened; *Metaphysics; ~saying; humans, people, men; [naturally]; ~desire, want, long, curious, curiosity; ~know, understand
+Thucydides believed that human nature would make history repeat itself in similar forms. | History of the Peloponnesian War | Thucydides | *Thucydides; ~believed; [human] nature; ~make; history; ~repeat, recur; [similar] forms
+Pascal claimed all human unhappiness comes from being unable to sit quietly alone. | Pensées | Blaise Pascal | *Pascal; ~claimed; [human] unhappiness, misery, trouble; ~comes; ~sit, stay; [quietly, quiet]; [alone, room]
+Darwin argued that our moral sense grew from the social instincts of animals. | The Descent of Man | Charles Darwin | *Darwin; ~argued; [moral, conscience] sense; ~grew; [social] instincts; animals
+Spinoza wrote that he tried to understand human actions rather than mock them. | Political Treatise | Baruch Spinoza | *Spinoza; ~wrote; ~tried; ~understand, comprehend; [human] actions, behavior, behaviour, people; ~mock, ridicule, laugh, judge, condemn
+Machiavelli observed that people forget a father's death sooner than a lost inheritance. | The Prince | Niccolò Machiavelli | *Machiavelli; ~observed; people; ~forget, forgive; father; death; [sooner]; [lost] inheritance, property, money, wealth, patrimony
+Shakespeare's Macbeth shows ambition driving a loyal soldier to murder his king. | Macbeth | William Shakespeare | *Shakespeare; *Macbeth; ~shows; ambition, ambitious; ~driving; [loyal] soldier; ~murder, kill; king
+Kant described enlightenment as daring to use one's own understanding without guidance. | What Is Enlightenment? | Immanuel Kant | *Kant; ~described; enlightenment; ~daring, courage; ~use; understanding, reason, think, mind; guidance
+Le Bon argued that individuals in a crowd lose their sense of responsibility. | The Crowd | Gustave Le Bon | *Le Bon, Le, Bon; ~argued; individuals, conscience; crowd, mob, mass; ~lose; responsibility
+In Oedipus Rex, a king's search for the truth reveals his own guilt. | Oedipus Rex | Sophocles | *Oedipus Rex, Oedipus, Rex, Sophocles; king; search, investigation; truth; ~reveals; guilt, guilty, crime
