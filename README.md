@@ -1,5 +1,5 @@
 # Axiom
-
+https://hidinglake.github.io/axiom/
 Axiom trains two things that work together whenever you listen, read or think while something else wants your attention: **working memory** (WM, the capacity that test batteries report as a working memory index, WMI) and **selective attention** (SeA).
 
 It is not a memorization drill. A segment asks you to take in a sentence about an idea, keep hold of what it says while your attention is pulled away twice, and then say it back in whatever words you have. The grade answers one question: **what of the idea did you hold?** It does not ask whether you reproduced the sentence.
