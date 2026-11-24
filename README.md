@@ -1,10 +1,14 @@
 # Axiom
-https://hidinglake.github.io/axiom/
+
+**Play it: https://hidinglake.github.io/axiom/**
+
 Axiom trains two things that work together whenever you listen, read or think while something else wants your attention: **working memory** (WM, the capacity that test batteries report as a working memory index, WMI) and **selective attention** (SeA).
 
-It is not a memorization drill. A segment asks you to take in a sentence about an idea, keep hold of what it says while your attention is pulled away twice, and then say it back in whatever words you have. The grade answers one question: **what of the idea did you hold?** It does not ask whether you reproduced the sentence.
+Axiom is not a memorization drill. It exercises two things: holding information in working memory, and putting what you held into words. The aim is understanding, not recall of exact wording.
 
-Everything is in `index.html`. The other files are content the page loads. There is no server and no API behind it.
+With no API to judge answers, Axiom grades against a fixed curriculum: phrases written with the cues that carry their meaning built in. That limitation will sometimes make a grade seem peculiar. What matters most is how well you comprehend what you read, and how consistently you can recall it and say it in your own words.
+
+Everything is in `index.html`. The other files are content the page loads.
 
 ## A segment, and what each part asks of you
 
@@ -290,7 +294,7 @@ Upload image files (jpg, png, webp, gif, avif, svg) straight into `cute/`, `odd/
 - Upload a batch in one commit. Every commit republishes the site.
 - The repository is public, so anything in these folders can be seen and downloaded by anyone.
 
-Which image comes next is a random draw from all the images of the chosen categories pooled together, every image as likely as any other, so a category with more images comes up more often. The one limit is on repeats: an image never follows itself, and in a folder with images to spare none comes back within four changes. Images are loaded a few ahead of the window, so a large folder costs no more than a small one.
+Images are dealt in rounds. Each round shows one image from every category that is on, in a new random order each round: with Grim, Odd and Sexy on, a run might go grim, odd, sexy, then odd, grim, sexy. A round never starts with the category the last one ended on, so the same category never shows twice in a row. Within a category, images come from a shuffled deck: every image in the folder is shown once before any is shown again, and a new deck never opens with the image the last one closed on. A category with more images therefore takes longer to repeat, but does not come up more often. Images are loaded a few ahead of the window, so a large folder costs no more than a small one.
 
 On GitHub Pages the page asks the GitHub API what is in the folder, so there is no list to maintain. Folder names are matched there without regard to capitals, so `Cute/` is found as well as `cute/`; on any other host the names must be lowercase. The repository must be public for that to work. GitHub allows each visitor 60 such requests an hour, about 30 session starts; past that the page reuses the last list it saw.
 

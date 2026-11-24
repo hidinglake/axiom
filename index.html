@@ -413,16 +413,38 @@ const levelIn = (n, top = LEVELS) => Math.min(top, Math.max(1, n));
 const stepped = (sea, wm, step) => ({ sea: levelIn(sea + step, TOP.sea), wm: levelIn(wm + step, TOP.wm) });   // a level already at an end stays there
 
 /* ---------- the next picture ---------- */
-/* Every change of picture is a fresh draw from all the pictures of the chosen categories, each picture as likely as any other.
-   The one thing a draw may not be is a picture that has only just been shown: never the one before it, and in a
-   folder with pictures to spare, none of the last few. `trail` is the run of pictures so far, the latest last. */
-const RECENT = 4;
-function drawPicture(pool, trail) {
-  if (pool.length < 2) return pool.length ? pool[0] : null;
-  const gap = Math.max(1, Math.min(RECENT, Math.floor((pool.length - 1) / 2)));   // at least half the folder is always open to the draw
-  const late = new Set(trail.slice(-gap));
-  const open = pool.filter((u) => !late.has(u));
-  return open[randInt(open.length)];
+/* Pictures are dealt like cards, in rounds.
+     A round shows one picture from each chosen category, the categories in a fresh random order every round: with
+       grim, odd and sexy on, a run might go grim, odd, sexy, then odd, grim, sexy. A round never opens with the
+       category the last one closed on, so the same category never shows twice running.
+     Each category keeps its own shuffled deck, and a picture is not seen again until every picture of its category
+       has been shown. A new deck never opens with the picture the old one closed on.
+   `groups` holds the pictures of each category, one list per category. */
+function shuffleOpening(list, not) {                      // shuffled, and not starting with `not` if that can be helped
+  shuffle(list);
+  if (list.length > 1 && list[0] === not) { const j = 1 + randInt(list.length - 1); [list[0], list[j]] = [list[j], list[0]]; }
+  return list;
+}
+function dealer(groups) {
+  const cats = groups.map((g) => ({ all: g.slice(), deck: [], last: null })).filter((c) => c.all.length);
+  let order = [], lastCat = null;
+  return {
+    next() {
+      if (!cats.length) return null;
+      if (!order.length) order = shuffleOpening(cats.slice(), lastCat);
+      const cat = order.shift();
+      if (!cat.deck.length) cat.deck = shuffleOpening(cat.all.slice(), cat.last);
+      const url = cat.deck.shift();
+      cat.last = url;
+      lastCat = cat;
+      return url;
+    },
+    drop(url) {                                            // a picture that will not load: gone for the session, and an emptied category with it
+      for (const c of cats) { c.all = c.all.filter((u) => u !== url); c.deck = c.deck.filter((u) => u !== url); }
+      for (let i = cats.length - 1; i >= 0; i--) if (!cats[i].all.length) { order = order.filter((c) => c !== cats[i]); cats.splice(i, 1); }
+    },
+    get size() { return cats.reduce((n, c) => n + c.all.length, 0); },
+  };
 }
 
 /* ---------- reading a phrase as words and punctuation marks ---------- */
@@ -1127,7 +1149,7 @@ async function imagesFor(kinds, fresh) {
   const key = kinds.join(','), hit = shelf.images.get(key);
   if (!stale(hit, fresh)) return hit.data;
   const lists = await Promise.all(kinds.map((k) => folderImages(imageFolder(k), fresh)));
-  const data = { wanted: kinds, empty: kinds.filter((_, i) => !lists[i].length), list: [].concat(...lists) };
+  const data = { wanted: kinds, empty: kinds.filter((_, i) => !lists[i].length), list: [].concat(...lists), groups: lists };
   shelf.images.set(key, { at: now(), data });
   return data;
 }
@@ -1218,36 +1240,31 @@ function warm(url) {
   }));
   return loading.get(url);
 }
-/* Which picture comes next is drawn at random from the mode's folder (drawPicture above). The draws are made a few
+/* Which picture comes next is dealt by the session's dealer (above). The draws are made a few
    ahead of the window, so that a picture is loaded by the time it is due, but never the whole library at once: a
    folder of hundreds costs no more than a folder of ten. A picture that will not load is dropped for the session. */
 const AHEAD = 5, KEPT = 24;
 function deal(r) {
-  const pool = r.all.filter((u) => !r.bad.has(u));
-  const want = Math.min(AHEAD, Math.max(1, pool.length - 1));
-  while (pool.length && r.hand.length < want) {
-    const url = drawPicture(pool, r.trail);
-    r.trail.push(url);
-    if (r.trail.length > 4 * RECENT) r.trail.shift();
+  const want = Math.min(AHEAD, r.deck.size);
+  while (r.deck.size && r.hand.length < want) {
+    const url = r.deck.next();
     r.hand.push(url);
     warm(url).then((ok) => {
       if (ok || run !== r) return;
-      r.bad.add(url);
+      r.deck.drop(url);
       r.hand = r.hand.filter((u) => u !== url);
-      r.trail = r.trail.filter((u) => u !== url);
       deal(r);
     });
   }
 }
-async function stock(r, list) {                            // the first few pictures are in hand before the session clock starts
-  r.all = list.slice();
+async function stock(r, groups) {                          // the first few pictures are in hand before the session clock starts
+  r.deck = dealer(groups);
   deal(r);
   await Promise.race([Promise.all(r.hand.map(warm)), new Promise((done) => setTimeout(done, 6000))]);
 }
 function nextImage(r) {
-  const at = r.hand.findIndex((u) => ready.has(u) && u !== r.showing);
-  if (at >= 0) {
-    const url = r.hand.splice(at, 1)[0];
+  if (r.hand.length && ready.has(r.hand[0])) {           // strictly in the order dealt: a picture still loading holds the window until it is in
+    const url = r.hand.shift();
     r.showing = url;
     $('window').replaceChildren(ready.get(url));
     for (const old of ready.keys()) {                      // let go of pictures shown long ago; they load again from the browser's cache
@@ -1303,7 +1320,7 @@ async function start() {
     recent: [],                                              // the comprehension of each recall made at the present difficulty
     time: minutes * 60000, phase: 'loading', rounds: [], round: null,
     texts: new Map(), piles: new Map(),                      // per working-memory level: its phrases, and those not yet shown
-    all: [], hand: [], trail: [], bad: new Set(),            // the pictures of the chosen categories; those drawn and loading; the run of draws so far; those that will not load
+    deck: null, hand: [],                                    // the dealer of the chosen categories' pictures; those dealt and loading
   };
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // so a stray Space does not press a button
   r.tick = setInterval(() => { if (run === r) drawStatus(); }, 200);   // keeps the session timer at the foot of the screen in step with the clock
@@ -1313,7 +1330,7 @@ async function start() {
   if (run !== r) return;
   drawNote();
   r.phrases = phrases;
-  await stock(r, im.list);
+  await stock(r, im.groups);
   if (run !== r) return;
   memorize();
 }
