@@ -88,9 +88,11 @@ main { position: relative; flex: 1; min-height: 0; display: grid; place-items: c
 .act { padding: 8px 14px; border: 1.5px solid var(--ink); font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
 .act.main { background: var(--ink); color: var(--paper); }
 .setup .act { padding: 12px 14px; font-size: 18px; }
+#go { background: var(--good); border-color: var(--good); color: var(--paper); }   /* Start is the one green thing on the first screen */
 @media (hover: hover) {
   .act:hover { background: color-mix(in srgb, var(--ink) 10%, transparent); }
   .act.main:hover { background: color-mix(in srgb, var(--ink) 82%, var(--paper)); }
+  #go:hover { background: color-mix(in srgb, var(--good) 84%, var(--paper)); }
   .levels input:hover:not(:checked) + span { background: color-mix(in srgb, var(--ink) 10%, transparent); }
   .mode input:hover:not(:checked) ~ .disc { background: color-mix(in srgb, var(--ink) 10%, transparent); }
   .quit:hover { color: var(--ink); }
@@ -232,17 +234,9 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
 <body>
 <main>
   <div class="setup" id="setup">
-    <div class="pair">
-      <div class="param">
-        <label class="eyebrow" for="memo-sec">Memorization window</label>
-        <div class="mins big"><input type="number" id="memo-sec" min="1" max="300" step="any" value="15" inputmode="decimal"><span>s</span></div>
-      </div>
-      <div class="param">
-        <label class="eyebrow" for="session-min">Session duration</label>
-        <div class="mins big"><input type="number" id="session-min" min="0.1" max="999" step="any" value="5" inputmode="decimal"><span>min</span></div>
-      </div>
-    </div>
-    <div class="modes" id="modes" role="group" aria-label="Image categories">
+    <div class="param">
+      <span class="eyebrow" id="modes-name">Stimuli types</span>
+    <div class="modes" id="modes" role="group" aria-labelledby="modes-name">
       <label class="mode">
         <input type="checkbox" name="kind" value="cute" checked>
         <span class="disc"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 11.5c0-3 2.3-5 5-5s5 2 5 5v6.5c0 4-2.3 6.5-5 6.5s-5-2.5-5-6.5z"/><path class="solid" d="M11.4 9.4C9 8.2 5 9.3 4.4 13.4c-.4 3 1.2 6.1 3.3 6.1 1.5 0 2.7-2 3.3-4.1z"/><path class="solid" d="M20.6 9.4c2.4-1.2 6.4-.1 7 4 .4 3-1.2 6.1-3.3 6.1-1.5 0-2.7-2-3.3-4.1z"/><circle class="solid" cx="13.8" cy="14.6" r="1.2"/><circle class="solid" cx="18.2" cy="14.6" r="1.2"/><ellipse class="solid" cx="16" cy="19" rx="1.9" ry="1.3"/><path d="M14.4 21.6c.9.9 2.3.9 3.2 0"/></svg></span>
@@ -269,6 +263,7 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
         <span class="name">Funny</span>
       </label>
     </div>
+    </div>
     <div class="param" role="group" aria-labelledby="sea-name">
       <span class="eyebrow" id="sea-name">Selective attention</span>
       <div class="slide" id="sea-levels"></div>
@@ -277,15 +272,25 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
       <span class="eyebrow" id="wm-name">Working memory</span>
       <div class="slide" id="wm-levels"></div>
     </div>
+    <div class="pair">
+      <div class="param">
+        <label class="eyebrow" for="memo-sec">Reading window</label>
+        <div class="mins big"><input type="number" id="memo-sec" min="1" max="300" step="any" value="15" inputmode="decimal"><span>sec</span></div>
+      </div>
+      <div class="param">
+        <label class="eyebrow" for="session-min">Session duration</label>
+        <div class="mins big"><input type="number" id="session-min" min="0.1" max="999" step="any" value="5" inputmode="decimal"><span>min</span></div>
+      </div>
+    </div>
+    <button class="act main" id="go" type="button">Start</button>
+    <p class="note" id="note" role="status"></p>
     <div class="param" role="group" aria-labelledby="pics-name">
-      <span class="eyebrow" id="pics-name">Images during phrase recall</span>
+      <span class="eyebrow" id="pics-name">Stimuli during recall</span>
       <div class="levels two" id="pics-toggle">
         <label><input type="radio" name="pics" value="off" checked><span>Off</span></label>
         <label><input type="radio" name="pics" value="on"><span>On</span></label>
       </div>
     </div>
-    <button class="act main" id="go" type="button">Start</button>
-    <p class="note" id="note" role="status"></p>
   </div>
 
   <button class="quit" id="stop" type="button" hidden>Stop</button>
@@ -1363,7 +1368,7 @@ function cycle(r, step, until) {
 /* step 1: the phrase under the window, the window changing pictures, for the time the two levels allow */
 function memorize() {
   const r = run, t0 = now();
-  r.window = r.memo * 1000;                                // the memorization window the player set
+  r.window = r.memo * 1000;                                // the reading window the player set
   const end = t0 + r.window;
   const entry = nextPhrase(r);
   r.round = { entry, phrase: entry.s, misses: 0, sea: r.sea, wm: r.wm };
@@ -1375,7 +1380,7 @@ function memorize() {
   cycle(r, 'memorize', end);
   const drain = () => {                                    // the bar under the window and the seconds beside it, read off the clock each frame
     if (run !== r || r.phase !== 'memorize') return;
-    const left = Math.max(0, end - now()), seconds = Math.ceil(left / 1000) + ' s';
+    const left = Math.max(0, end - now()), seconds = Math.ceil(left / 1000) + ' sec';
     $('fuse').style.transform = 'scaleX(' + left / r.window + ')';
     if ($('count').textContent !== seconds) $('count').textContent = seconds;
     r.frame = requestAnimationFrame(drain);

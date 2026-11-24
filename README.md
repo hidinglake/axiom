@@ -10,7 +10,7 @@ Everything is in `index.html`. The other files are content the page loads. There
 
 | Part | What happens | What it trains |
 | --- | --- | --- |
-| **Memorize** | A root phrase stays on screen for the memorization window you set. Above it, images from the categories you chose keep changing. | Working memory: reading for the idea and choosing what to keep. Selective attention: the images are irrelevant, changing and chosen to be hard to ignore. |
+| **Memorize** | A root phrase stays on screen for the reading window you set. Above it, images from the categories you chose keep changing. | Working memory: reading for the idea and choosing what to keep. Selective attention: the images are irrelevant, changing and chosen to be hard to ignore. |
 | **Spheres** | A 9 by 5 grid of spheres in two close colors. Select every sphere of the less common color. | Selective attention: finding targets among near-identical neighbors. Working memory: the phrase has to survive a task that leaves no room to rehearse it. |
 | **Recall** | Write the phrase back. | Working memory: rebuilding the idea from what was kept. |
 | **Review** | The root phrase with each cue marked held or lost, your phrase, and the counts. Nothing moves on until you press Start next segment. | Feedback on which kind of thing you tend to drop: names, things, their details. |
@@ -197,10 +197,13 @@ References
 
 ## The first screen
 
-- **Memorization window**, in seconds, and **Session duration**, in minutes, side by side at the top, typed straight onto the large numbers. The memorization window is how long each root phrase stays on screen to be memorized.
-- **Cute**, **Odd**, **Grim**, **Sexy** and **Funny**, the five round buttons, choose the image categories. Any number from one to five can be on at once; the last one on cannot be switched off. The categories decide which folders the images come from and nothing else.
-- **Selective attention** and **Working memory**, each 1 to 10, set the difficulty the session starts at.
-- **Images during phrase recall** keeps the image window changing above the text box while the phrase is typed. It is off unless switched on.
+From top to bottom:
+
+- **Stimuli types**: **Cute**, **Odd**, **Grim**, **Sexy** and **Funny**, the five round buttons, choose the image categories. Any number from one to five can be on at once; the last one on cannot be switched off. The categories decide which folders the images come from and nothing else.
+- **Selective attention**, 1 to 5, and **Working memory**, 1 to 10, set the difficulty the session starts at. Each is a slider: drag the square along the line, or tap the line, and the number in the square is the level. With a keyboard, the arrow keys move it.
+- **Reading window**, in seconds, and **Session duration**, in minutes, side by side, typed straight onto the large numbers. The reading window is how long each root phrase stays on screen to be read and memorized.
+- **Start**, the green button.
+- **Stimuli during recall**, under Start, keeps the image window changing above the text box while the phrase is typed. It is off unless switched on.
 
 All of it is remembered from one visit to the next.
 
@@ -227,28 +230,35 @@ Nothing has to be rebuilt or listed anywhere. The page reads these files fresh e
 
 ## The levels
 
-| Level | New image every | Odd spheres of 45 | Color gap | Phrase length |
-| --- | --- | --- | --- | --- |
-| 1 | 2.4 s | 7 or 8 | 0.07 | 10 to 11 words |
-| 2 | 2.1 s | 8 or 9 | 0.063 | 12 to 13 words |
-| 3 | 1.8 s | 9 or 10 | 0.057 | 14 to 15 words |
-| 4 | 1.5 s | 10 or 11 | 0.051 | 16 to 17 words |
-| 5 | 1.3 s | 11 or 12 | 0.046 | 18 to 20 words |
-| 6 | 1.1 s | 12 or 13 | 0.041 | 21 to 23 words |
-| 7 | 0.95 s | 13 or 14 | 0.037 | 24 to 26 words |
-| 8 | 0.8 s | 14 or 15 | 0.033 | 27 to 29 words |
-| 9 | 0.7 s | 15 or 16 | 0.03 | 30 to 33 words |
-| 10 | 0.6 s | 16 or 17 | 0.027 | 34 to 37 words |
+Selective attention has five levels:
 
-The image, sphere and color columns follow the selective-attention level, and the phrase length follows the working-memory level. The color gap is how far apart the two sphere colors are; smaller is harder, and about 0.02 is the least an eye can pick out.
+| Level | New image every | Odd spheres of 45 | Color gap |
+| --- | --- | --- | --- |
+| 1 | 1.3 s | 11 or 12 | 0.046 |
+| 2 | 1.1 s | 12 or 13 | 0.04 |
+| 3 | 0.9 s | 14 or 15 | 0.035 |
+| 4 | 0.75 s | 15 or 16 | 0.031 |
+| 5 | 0.6 s | 16 or 17 | 0.027 |
 
-The time to memorize is not tied to the levels. You set it in the Memorization window box on the first screen, in seconds (1 to 300, 15 to begin with), and it holds for every segment of the session.
+The color gap is how far apart the two sphere colors are; smaller is harder, and about 0.02 is the least an eye can pick out. These five run from where level 5 of the earlier ten-level scale stood to where its level 10 stood, with the steps between spread evenly. A level saved on the old scale is carried over to the nearest of the five.
+
+Working memory has ten levels, each a length of phrase:
+
+| Level | Phrase length | Level | Phrase length |
+| --- | --- | --- | --- |
+| 1 | 10 to 11 words | 6 | 21 to 23 words |
+| 2 | 12 to 13 words | 7 | 24 to 26 words |
+| 3 | 14 to 15 words | 8 | 27 to 29 words |
+| 4 | 16 to 17 words | 9 | 30 to 33 words |
+| 5 | 18 to 20 words | 10 | 34 to 37 words |
+
+The time to memorize is not tied to the levels. You set it as the Reading window on the first screen, in seconds (1 to 300, 15 to begin with), and it holds for every segment of the session.
 
 The numbers behind all of this sit together near the top of the script in `index.html`:
 
 | Name | Holds |
 | --- | --- |
-| `SEA`, `WM`, `MEMO` | the level tables and the memorization window |
+| `SEA`, `WM`, `MEMO` | the level tables and the reading window |
 | `SKILL` | the skill scalar: how many recalls, and the two thresholds |
 | `WEIGHT` | what a name, a noun, a detail and a verb are worth |
 | `IDEAS` | how much the meaning model can add, and its two thresholds |
@@ -264,7 +274,7 @@ Difficulty follows the recalls. Once three recalls have been made at the current
 - below 60%, both levels go down one;
 - from 60% to 80%, nothing moves.
 
-After a move the count starts again, so each difficulty is judged on three recalls made at that difficulty. A level already at 1 or 10 stays there while the other moves. When the difficulty moves, the review says so and gives the two new levels, the foot of the screen shows them from then on, and the next segment is played at them. At the end of a session the first screen stands at the levels the session reached, so the next session starts from there.
+After a move the count starts again, so each difficulty is judged on three recalls made at that difficulty. A level already at its lowest or highest stays there while the other moves, so selective attention stops at 5 while working memory can go on to 10. When the difficulty moves, the review says so and gives the two new levels, the foot of the screen shows them from then on, and the next segment is played at them. At the end of a session the first screen stands at the levels the session reached, so the next session starts from there.
 
 ## Session time
 
