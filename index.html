@@ -80,6 +80,7 @@ main { position: relative; flex: 1; min-height: 0; display: grid; place-items: c
   font-family: var(--font-display); font-weight: 700; font-size: clamp(50px, 15vw, 76px); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); -moz-appearance: textfield; appearance: textfield; }
 .mins.big input::-webkit-outer-spin-button, .mins.big input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .mins.big input:hover { border-bottom-color: var(--grid); }
+.mins.big input::placeholder { color: var(--grid); opacity: 1; }
 .mins.big input:focus { outline: none; border-bottom-color: var(--ink-soft); }
 .mins.big input:focus-visible { outline: none; border-bottom-color: var(--pick); }
 .mins.big span { font-family: var(--font-display); font-weight: 600; font-size: clamp(20px, 6vw, 26px); color: var(--ink-soft); }
@@ -1619,12 +1620,28 @@ function fitTime() {
   const boxes = [$('memo-sec'), $('session-min')];
   for (const box of boxes) {
     box.style.fontSize = '';
-    box.style.width = Math.max(1, Array.from(box.value).reduce((w, ch) => w + (/[.,]/.test(ch) ? 0.45 : 1), 0)) + 0.15 + 'ch';
+    box.style.width = Math.max(1, Array.from(box.value || box.placeholder).reduce((w, ch) => w + (/[.,]/.test(ch) ? 0.45 : 1), 0)) + 0.15 + 'ch';
   }
   const over = () => boxes.some((box) => box.parentNode.scrollWidth > box.parentNode.clientWidth + 0.5);
   for (let size = parseFloat(getComputedStyle(boxes[0]).fontSize); over() && size > 24; size -= 2) boxes.forEach((box) => { box.style.fontSize = size - 2 + 'px'; });
 }
 for (const id of ['memo-sec', 'session-min']) $(id).addEventListener('input', fitTime);
+/* Selecting either number empties it, ready for the new one; the old number shows faintly until something is typed.
+   Leaving it empty puts the old number back. */
+for (const id of ['memo-sec', 'session-min']) {
+  const box = $(id);
+  box.addEventListener('focus', () => {
+    box.dataset.was = box.value;
+    box.placeholder = box.value;
+    box.value = '';
+    fitTime();
+  });
+  box.addEventListener('blur', () => {
+    if (!box.value.trim() && box.dataset.was) { box.value = box.dataset.was; remember(); }
+    box.placeholder = '';
+    fitTime();
+  });
+}
 addEventListener('resize', fitTime);
 /* Start and Submit are plain buttons, not forms: a page shown inside a sandboxed preview is not allowed to submit one */
 function begin() {
@@ -1636,7 +1653,7 @@ function begin() {
   });
 }
 $('go').addEventListener('click', begin);
-for (const id of ['session-min', 'memo-sec']) $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); begin(); } });
+for (const id of ['session-min', 'memo-sec']) $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); begin(); } });
 $('stop').addEventListener('click', finish);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && run) finish(); });
 $('field').addEventListener('click', (e) => { const orb = e.target.closest('.orb'); if (orb) pressSphere(orb); });
