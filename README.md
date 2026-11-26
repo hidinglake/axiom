@@ -205,13 +205,13 @@ From top to bottom:
 
 - **Stimuli types**: **Cute**, **Odd**, **Grim**, **Sexy** and **Funny**, the five round buttons, choose the image categories. Any number from one to five can be on at once; the last one on cannot be switched off. The categories decide which folders the images come from and nothing else.
 - **Selective attention**, 1 to 5, and **Working memory**, 1 to 10, set the difficulty the session starts at. Each is a slider: drag the square along the line, or tap the line, and the number in the square is the level. With a keyboard, the arrow keys move it.
-- **Reading window**, in seconds, and **Session duration**, in minutes, side by side, typed straight onto the large numbers. The reading window is how long each root phrase stays on screen to be read and memorized.
+- **Reading window**, in seconds, and **Session rounds**, the number of segments the session will be, side by side, typed straight onto the large numbers. The reading window is how long each root phrase stays on screen to be read and memorized.
 - **Start**, the green button.
 - **Stimuli during recall**, under Start, keeps the image window changing above the text box while the phrase is typed. It is off unless switched on.
 
 All of it is remembered from one visit to the next.
 
-While the phrase is memorized, a bar under the image window drains and the seconds left are counted down beside it. Through the whole session the foot of the screen shows the levels in force and, beside them, the session timer. A session ends with three averages: phrase recall comprehension, phrase recall time and sphere time.
+While the phrase is memorized, a bar under the image window drains and the seconds left are counted down beside it. Through the whole session the foot of the screen shows the levels in force and, beside them, which round of how many is being played.
 
 ## Folder layout
 
@@ -280,9 +280,25 @@ Difficulty follows the recalls. Once three recalls have been made at the current
 
 After a move the count starts again, so each difficulty is judged on three recalls made at that difficulty. A level already at its lowest or highest stays there while the other moves, so selective attention stops at 5 while working memory can go on to 10. When the difficulty moves, the review says so and gives the two new levels, the foot of the screen shows them from then on, and the next segment is played at them. At the end of a session the first screen stands at the levels the session reached, so the next session starts from there.
 
-## Session time
+## Session rounds
 
-The session duration counts only time spent inside segments. The session timer at the foot of the screen runs while a segment is played. While a review is read it stands still and is marked as paused, so reading a review does not shorten the session. When the time is used up, the segment in progress is still finished, the timer shows 00:00, and the button on its review reads View session results.
+A session is the number of rounds typed on the first screen, from 1 to 99 (5 to begin with); a round is one segment. The foot of the screen shows the round in play, such as Round 2 of 10, and keeps showing it while that round's review is read. Reviews take as long as you like. On the last round's review the button reads View session results. Stop ends a session early at any point.
+
+The session ends on a results screen: average phrase recall comprehension, average recall time and average sphere time. **Copy results** there copies a short summary to paste anywhere:
+
+```
+5-round AXIOM Session
+Comprehension: 72% (MID)
+Rounds: 5 (Spheres: 63, Mistakes: 4)
+Recall time: 14.2s avg, sphere time: 3.1s avg
+Reading window: 15s
+Selective attention: 1 → 2
+Working memory: 3 → 4
+Stimuli: Cute, Grim
+Auto scale: Enabled
+```
+
+Spheres is how many odd spheres there were to find, and Mistakes how many wrong spheres were pressed. A level that moved shows where it started and where it ended. A session stopped early says how many of its rounds were played, such as Rounds: 3 of 5.
 
 ## Adding images
 

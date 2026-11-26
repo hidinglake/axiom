@@ -206,6 +206,7 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
 .figures .hero dd { font-size: clamp(88px, 16vw, 190px); }
 .wrap-up { display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .wrap-up .clock { margin: 0; gap: 16px; }
+.wrap-up .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 
 /* ---- during a session, at the foot of the screen: the difficulty in force and, beside it, the session timer ---- */
 .status { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 40px; padding: 6px 20px 14px; }
@@ -279,8 +280,8 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
         <div class="mins big"><input type="number" id="memo-sec" min="1" max="300" step="any" value="15" inputmode="decimal"><span>sec</span></div>
       </div>
       <div class="param">
-        <label class="eyebrow" for="session-min">Session duration</label>
-        <div class="mins big"><input type="number" id="session-min" min="0.1" max="999" step="any" value="5" inputmode="decimal"><span>min</span></div>
+        <label class="eyebrow" for="session-rounds">Session rounds</label>
+        <div class="mins big"><input type="number" id="session-rounds" min="1" max="99" step="1" value="5" inputmode="numeric"><span>rounds</span></div>
       </div>
     </div>
     <button class="act main" id="go" type="button">Start</button>
@@ -348,7 +349,7 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
     </dl>
     <div class="wrap-up">
       <p class="clock" id="ended" hidden><span class="eyebrow">Difficulty now</span><span class="where" id="ended-at"></span></p>
-      <button class="act" id="again" type="button">New session</button>
+      <div class="buttons"><button class="act" id="copy" type="button">Copy results</button><button class="act" id="again" type="button">New session</button></div>
     </div>
   </div>
 </main>
@@ -1031,10 +1032,6 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const fmt = (v) => String(Math.round(v * 100) / 100);      // points: 1, 0.8, 0.86
 const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
 const mean = (list) => list.reduce((sum, v) => sum + v, 0) / list.length;
-function clockText(ms) {                                   // session time left, 03:42
-  const t = Math.max(0, Math.ceil(ms / 1000));
-  return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
-}
 function span(ms) {                                        // 14.2 s, or 1:44 once it is long
   if (ms < 99950) return (ms / 1000).toFixed(1) + ' s';
   const t = Math.round(ms / 1000);
@@ -1190,9 +1187,9 @@ async function survey() {
   await Promise.all([imagesFor(set.kinds), textFor(wm)]);
   if (set.kinds.join(',') === kinds && set.wm === wm) drawNote();
 }
-function minutesTyped() {
-  const v = parseFloat($('session-min').value);
-  return isFinite(v) && v > 0 ? Math.min(v, 999) : 0;
+function roundsTyped() {                                   // how many segments the session is: a whole number, 1 to 99
+  const v = Math.round(parseFloat($('session-rounds').value));
+  return isFinite(v) && v >= 1 ? Math.min(v, 99) : 0;
 }
 function draw() {                                          // one screen at a time
   const phase = run ? run.phase : view;
@@ -1213,16 +1210,15 @@ function draw() {                                          // one screen at a ti
   $('status').hidden = !(run && (LIVE.includes(phase) || phase === 'review'));
   drawStatus();
 }
-/* The strip at the foot of the screen through a session: the difficulty in force, and the session time left. The
-   timer runs while a segment is being played and stands still, marked as paused, while its review is read. */
+/* The strip at the foot of the screen through a session: the difficulty in force, and which round of how many. */
 const LIVE = ['memorize', 'spheres', 'recall'];
 function drawStatus() {
   const r = run;
   if (!r) return;
   const live = LIVE.includes(r.phase);
   $('status-level').textContent = levelsText(r);
-  $('status-clock').textContent = live || r.time <= 0 ? 'Session' : 'Session paused';   // at 00:00 there is nothing left to pause
-  $('status-time').textContent = clockText(live ? r.time - (now() - r.began) : r.time);
+  $('status-clock').textContent = 'Round';
+  $('status-time').textContent = Math.min(r.total, r.rounds.length + (live || r.phase === 'loading' ? 1 : 0)) + ' of ' + r.total;   // the round in play, or the one just reviewed
 }
 
 /* ---------- the image window ---------- */
@@ -1312,14 +1308,14 @@ function grade(entry, typed, meaning) {
 /* ---------- a session ---------- */
 async function start() {
   if (run) return;
-  const minutes = minutesTyped(), memo = memorizeSeconds($('memo-sec').value);
+  const total = roundsTyped(), memo = memorizeSeconds($('memo-sec').value);
   if (!memo) { $('memo-sec').focus(); return; }
-  if (!minutes) { $('session-min').focus(); return; }
+  if (!total) { $('session-rounds').focus(); return; }
   const r = run = {
     kinds: set.kinds.slice(), sea: set.sea, wm: set.wm, pics: set.pics, memo,
     from: { sea: set.sea, wm: set.wm },                      // where the difficulty stood when the session began
     recent: [],                                              // the comprehension of each recall made at the present difficulty
-    time: minutes * 60000, phase: 'loading', rounds: [], round: null,
+    total, phase: 'loading', rounds: [], round: null,          // how many rounds the session is; those played so far
     texts: new Map(), piles: new Map(),                      // per working-memory level: its phrases, and those not yet shown
     deck: null, hand: [],                                    // the dealer of the chosen categories' pictures; those dealt and loading
   };
@@ -1390,7 +1386,6 @@ function memorize() {
   const end = t0 + r.window;
   const entry = nextPhrase(r);
   r.round = { entry, phrase: entry.s, misses: 0, sea: r.sea, wm: r.wm };
-  r.began = t0;                                            // the session clock runs from here until the rewrite is handed in
   r.phase = 'memorize';
   $('phrase').textContent = r.round.phrase;
   $('source').innerHTML = sourceOf(entry);
@@ -1416,6 +1411,7 @@ function spheres() {
   $('source').replaceChildren();
   const count = level.odd[0] + randInt(level.odd[1] - level.odd[0] + 1);
   r.odd = new Set(shuffle(Array.from({ length: 45 }, (_, i) => i)).slice(0, count));
+  r.round.targets = count;
   r.left = count;
   const colors = twoColors(level.gap), names = coin() ? ['a', 'b'] : ['b', 'a'];   // which class is the rare one changes too
   const field = $('field');
@@ -1466,7 +1462,6 @@ async function submit() {
   if (!r || r.phase !== 'recall' || r.grading) return;
   const round = r.round, typed = $('answer').value;
   round.recallMs = now() - r.t0;
-  r.time -= now() - r.began;                               // only the time spent inside a segment counts against the session
   clearTimeout(r.swapT);
   $('window').replaceChildren();
   r.grading = true;                                        // the meaning model takes a moment; the box waits, and its time does not count
@@ -1529,7 +1524,7 @@ function review(r) {
   $('shift').hidden = !r.round.shift;                      // said only when this recall has just moved the difficulty
   $('shift-way').textContent = r.round.shift > 0 ? 'Difficulty raised' : 'Difficulty lowered';
   $('shift-to').textContent = levelsText(r);
-  $('next').textContent = r.time > 0 ? 'Start next segment' : 'View session results';   // nothing moves on until this is pressed
+  $('next').textContent = r.rounds.length < r.total ? 'Start next segment' : 'View session results';   // nothing moves on until this is pressed
   r.phase = 'review';
   r.shownAt = now();
   draw();
@@ -1538,7 +1533,7 @@ function review(r) {
 async function onward() {
   const r = run;
   if (!r || r.phase !== 'review' || r.fetching) return;
-  if (r.time <= 0) { finish(); return; }                   // when the session time is used up, the segment just reviewed was the last
+  if (r.rounds.length >= r.total) { finish(); return; }    // the last round has been reviewed
   r.fetching = true;                                       // in hand already, unless the level has just moved and its file is slow to arrive
   let phrases = r.phrases;
   try { phrases = await phrasesAt(r, r.wm); } catch (e) { /* keep the phrases of the level before */ }
@@ -1549,6 +1544,42 @@ async function onward() {
 }
 
 /* ---------- the end of a session: the three averages ---------- */
+/* The session in a few plain lines, to paste anywhere:
+     5-round AXIOM Session
+     Comprehension: 72% (MID)
+     Rounds: 5 (Spheres: 63, Mistakes: 4)
+     ... */
+let last = null;
+const MODE_NAMES = { cute: 'Cute', odd: 'Odd', grim: 'Grim', sexy: 'Sexy', funny: 'Funny' };
+function summaryOf(r) {
+  const n = r.rounds.length, percent = r.rounds.every((x) => x.result.percent === 100) ? 100 : Math.min(99, Math.round(100 * mean(r.rounds.map((x) => x.result.value))));
+  const sec = (ms) => (ms / 1000).toFixed(1) + 's', move = (a, b) => a === b ? String(a) : a + ' \u2192 ' + b;
+  return [
+    n + '-round AXIOM Session',
+    'Comprehension: ' + percent + '% (' + bandOf(percent).toUpperCase() + ')',
+    'Rounds: ' + n + (n < r.total ? ' of ' + r.total : '') + ' (Spheres: ' + r.rounds.reduce((t, x) => t + (x.targets || 0), 0) + ', Mistakes: ' + r.rounds.reduce((t, x) => t + x.misses, 0) + ')',
+    'Recall time: ' + sec(mean(r.rounds.map((x) => x.recallMs))) + ' avg, sphere time: ' + sec(mean(r.rounds.map((x) => x.sphereMs))) + ' avg',
+    'Reading window: ' + r.memo + 's',
+    'Selective attention: ' + move(r.from.sea, r.sea),
+    'Working memory: ' + move(r.from.wm, r.wm),
+    'Stimuli: ' + r.kinds.map((k) => MODE_NAMES[k] || k).join(', '),
+    'Auto scale: Enabled',
+  ].join('\n');
+}
+async function copyResults() {
+  if (!last || !last.summary) return;
+  const text = last.summary;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
+    const t = document.createElement('textarea');           // where the clipboard API is not allowed, the old way
+    t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+    t.remove();
+  }
+  $('copy').textContent = ok ? 'Copied' : 'Could not copy';
+  setTimeout(() => { $('copy').textContent = 'Copy results'; }, 1800);
+}
 function finish() {
   const r = run;
   if (!r) return;
@@ -1569,7 +1600,10 @@ function finish() {
     $('avg-sphere').textContent = span(mean(r.rounds.map((x) => x.sphereMs)));
     $('ended').hidden = r.sea === r.from.sea && r.wm === r.from.wm;     // said only if the session moved the difficulty
     $('ended-at').textContent = levelsText(r);
+    r.summary = summaryOf(r);
+    $('copy').textContent = 'Copy results';
   }
+  last = r;
   if (r.sea !== set.sea || r.wm !== set.wm) {              // the next session starts where this one left the difficulty
     set.sea = r.sea;
     set.wm = r.wm;
@@ -1581,7 +1615,7 @@ function finish() {
 }
 
 /* ---------- wiring ---------- */
-const remember = () => keep.write('axiom.settings', { v: 2, kinds: set.kinds, sea: set.sea, wm: set.wm, pics: set.pics, minutes: $('session-min').value, memo: $('memo-sec').value });
+const remember = () => keep.write('axiom.settings', { v: 2, kinds: set.kinds, sea: set.sea, wm: set.wm, pics: set.pics, rounds: $('session-rounds').value, memo: $('memo-sec').value });
 function showLevels() {                                    // each square on its level, with the level written in it
   for (const key of ['sea', 'wm']) {
     const box = $(key + '-levels'), input = box.querySelector('input');
@@ -1612,12 +1646,12 @@ for (const key of ['sea', 'wm']) {
   });
 }
 $('pics-toggle').addEventListener('change', (e) => { set.pics = e.target.value === 'on'; remember(); });
-$('session-min').addEventListener('input', remember);
+$('session-rounds').addEventListener('input', remember);
 $('memo-sec').addEventListener('input', remember);
 /* a time field is as wide as its digits, and the two are always the same size: if a long number would push its unit
    out of its column, both get smaller together until everything fits */
 function fitTime() {
-  const boxes = [$('memo-sec'), $('session-min')];
+  const boxes = [$('memo-sec'), $('session-rounds')];
   for (const box of boxes) {
     box.style.fontSize = '';
     box.style.width = Math.max(1, Array.from(box.value || box.placeholder).reduce((w, ch) => w + (/[.,]/.test(ch) ? 0.45 : 1), 0)) + 0.15 + 'ch';
@@ -1625,10 +1659,11 @@ function fitTime() {
   const over = () => boxes.some((box) => box.parentNode.scrollWidth > box.parentNode.clientWidth + 0.5);
   for (let size = parseFloat(getComputedStyle(boxes[0]).fontSize); over() && size > 24; size -= 2) boxes.forEach((box) => { box.style.fontSize = size - 2 + 'px'; });
 }
-for (const id of ['memo-sec', 'session-min']) $(id).addEventListener('input', fitTime);
+for (const id of ['memo-sec', 'session-rounds']) $(id).addEventListener('input', fitTime);
+$('session-rounds').addEventListener('input', () => { $('session-rounds').nextElementSibling.textContent = roundsTyped() === 1 ? 'round' : 'rounds'; });
 /* Selecting either number empties it, ready for the new one; the old number shows faintly until something is typed.
    Leaving it empty puts the old number back. */
-for (const id of ['memo-sec', 'session-min']) {
+for (const id of ['memo-sec', 'session-rounds']) {
   const box = $(id);
   box.addEventListener('focus', () => {
     box.dataset.was = box.value;
@@ -1653,7 +1688,7 @@ function begin() {
   });
 }
 $('go').addEventListener('click', begin);
-for (const id of ['session-min', 'memo-sec']) $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); begin(); } });
+for (const id of ['session-rounds', 'memo-sec']) $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); begin(); } });
 $('stop').addEventListener('click', finish);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && run) finish(); });
 $('field').addEventListener('click', (e) => { const orb = e.target.closest('.orb'); if (orb) pressSphere(orb); });
@@ -1668,6 +1703,7 @@ $('next').addEventListener('click', onward);
 document.addEventListener('keydown', (e) => {              // Enter also moves on, but not the Enter that has just handed in the rewrite
   if (e.key === 'Enter' && !e.repeat && run && run.phase === 'review' && now() - run.shownAt > 500) { e.preventDefault(); onward(); }
 });
+$('copy').addEventListener('click', copyResults);
 $('again').addEventListener('click', () => { view = 'setup'; draw(); fitTime(); });
 
 const saved = keep.read('axiom.settings') || {};
@@ -1678,7 +1714,7 @@ for (const key of ['sea', 'wm']) if (Number.isInteger(saved[key]) && saved[key] 
 showLevels();
 set.pics = saved.pics === true;
 $('pics-toggle').querySelector('input[value="' + (set.pics ? 'on' : 'off') + '"]').checked = true;
-if (parseFloat(saved.minutes) > 0) $('session-min').value = saved.minutes;
+if (parseInt(saved.rounds) >= 1) $('session-rounds').value = saved.rounds;
 if (memorizeSeconds(saved.memo)) $('memo-sec').value = saved.memo;
 fitTime();
 draw();
