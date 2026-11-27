@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0e0f11">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Axiom</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&family=Major+Mono+Display&family=Inter:wght@500;700&display=swap">
 <style>
 /* layout: one screen at a time, each holding only what that step needs. First the image categories, the two levels, the
    session length and Start. Then a segment, step by step: the image window with the phrase under it, the spheres, the box the phrase is
@@ -14,11 +15,14 @@
    root phrase against the rewrite, shows what each word and mark earned and waits for the next segment to be asked for. After the last segment, the three averages. The page has no color
    of its own: color belongs to the images and the spheres, and in the review to what lost points. */
 :root {
-  --paper: #000000; --paper-raised: #111111; --ink: #f0f0f0; --ink-soft: #9a9a9a;
-  --grid: #5a5a5a; --grid-faint: #242424; --pick: #ffffff; --bad: #ff8b7a; --part: #f0e442; --good: #6ddc8f;
-  --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
-  --font-body: "Barlow", "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  /* Silver: a near-black ground, light text, a silver accent; green for go, and for the score bands and cue marks
+     the same red, yellow and green the answer feed of the sister trainer uses */
+  --paper: #0e0f11; --paper-raised: #16171a; --ink: #f1f1f3; --ink-soft: #a7a9b0; --accent: #c8cad0;
+  --rule: rgba(205, 208, 215, .16); --grid: #5d5f66; --grid-faint: rgba(205, 208, 215, .16); --pick: #ffffff;
+  --bad: #ff9aa4; --part: #f6d68a; --good: #8af0b5; --go: #1f9d58; --stop: #c93545; --on-white: #12172a;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-body: "Space Grotesk", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --phrase-size: clamp(16px, .9vw + 9px, 21px);
   color-scheme: dark;
 }
@@ -231,11 +235,125 @@ b.s-gone { text-decoration: line-through; text-decoration-thickness: 2px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* =====================================================================
+   The coat of paint: technical and precise. Space Grotesk for numbers, phrases and text; Space Mono, in capitals
+   and widely spaced, for every label and button; flat surfaces, hairline rules, no shadows, square corners. Color
+   is kept for what it means: green to start, and red, yellow and green for how a recall fared.
+   ===================================================================== */
+html { background: var(--paper); }
+body {
+  background: radial-gradient(1200px 700px at 10% 10%, rgba(205, 208, 215, .08), transparent 45%),
+              linear-gradient(180deg, #0b0c0e 0%, #141518 100%) fixed;   /* the only gradient */
+  letter-spacing: -0.02em;
+}
+/* labels: Space Mono, capitals, wide tracking */
+.eyebrow, .mode .name, .quit, .act, .levels span, .mins.big span, .count, .where, .tally, .note, .wait {
+  font-family: var(--font-mono); font-weight: 400;
+}
+.eyebrow { font-size: 11px; letter-spacing: .16em; color: var(--ink-soft); }
+.stat .eyebrow { font-size: 10px; }
+.mode .name { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.mode input:checked ~ .name { color: var(--ink); }
+.mins.big span { font-size: 13px; letter-spacing: .12em; text-transform: none; color: var(--ink-soft); }   /* a unit sits beside its number, small and grey */
+.levels span, .levels.two span { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+.where { font-size: 13px; letter-spacing: .04em; }
+.count { font-size: 12px; letter-spacing: .08em; color: var(--ink-soft); }
+.tally { font-size: 12px; letter-spacing: .02em; }
+.tally b { font-weight: 400; }
+.note, .wait { font-size: 12px; letter-spacing: .04em; }
+/* the two labels that name a score sit in brackets */
+.wait { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); }   /* a status line: bracketed mono caps */
+.wait::before { content: "[ "; }
+.wait::after { content: " ]"; }
+/* big numbers: Space Grotesk, bold and tight */
+.score, .figures dd, .mins.big input, .slide .knob { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.03em; }
+/* phrases and the box they are rewritten in */
+.phrase, .reply textarea, .said-text, .toks, .ideas { font-family: var(--font-body); font-weight: 500; letter-spacing: -0.01em; }
+.source { font-size: 14px; letter-spacing: -0.01em; }
+.source cite { font-style: normal; color: var(--ink); }   /* no italics: the title is set apart by tone */
+/* hairlines in place of the heavy outlines */
+.disc { border: 1px solid var(--rule); border-radius: 2px; color: var(--ink-soft); background: rgba(255, 255, 255, .045); }
+.mode input:checked ~ .disc { color: #ffffff; border-color: var(--go); background: var(--go); }   /* a category that is on is green, like Start */
+.mode input:checked ~ .name { color: var(--ink); }
+.levels { border: 1px solid var(--rule); }
+.levels label + label { border-left: 1px solid var(--rule); }
+.levels span { color: var(--ink-soft); }
+.levels input:checked + span { background: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.slide::before { border-top: 1px solid var(--rule); }
+.slide .tick { width: 1px; margin-left: -.5px; background: var(--grid); }
+.slide .knob { background: #16171a; color: var(--ink); border: 1px solid var(--ink); font-size: 22px; }
+.slide input:focus-visible ~ .knob { outline: 2px solid var(--accent); outline-offset: 2px; }
+.reply textarea { background: rgba(255, 255, 255, .045); border: 1px solid var(--rule); }
+.reply textarea:focus { outline: none; border-color: var(--ink-soft); }
+.reply textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.window { background: rgba(255, 255, 255, .045); border: 1px solid var(--rule); }
+.fuse { height: 4px; background: var(--rule); }
+.fuse i { background: #ffffff; }
+.tally td { border-color: var(--rule) !important; }
+.memo .source::before { border-top-color: var(--rule); }
+:focus-visible { outline-color: var(--accent); }
+/* the image window wears a reticle: a short bracket at each corner, over the picture */
+.frame { position: relative; }
+.frame::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; aspect-ratio: 1; pointer-events: none; --k: rgba(241, 241, 243, .85); --arm: 18px; --in: 8px;
+  background-image: linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)),
+                    linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k));
+  background-repeat: no-repeat;
+  background-size: var(--arm) 1px, 1px var(--arm), var(--arm) 1px, 1px var(--arm), var(--arm) 1px, 1px var(--arm), var(--arm) 1px, 1px var(--arm);
+  background-position: var(--in) var(--in), var(--in) var(--in), calc(100% - var(--in)) var(--in), calc(100% - var(--in)) var(--in),
+                       var(--in) calc(100% - var(--in)), var(--in) calc(100% - var(--in)), calc(100% - var(--in)) calc(100% - var(--in)), calc(100% - var(--in)) calc(100% - var(--in));
+  mix-blend-mode: difference;
+}
+/* buttons */
+.act { border: 1px solid var(--rule); color: var(--ink); font-size: 12px; letter-spacing: .2em; border-radius: 2px; }
+.act.main { background: #ffffff; border-color: #ffffff; color: var(--on-white); }
+#go { background: var(--go); border-color: var(--go); color: #ffffff; }
+.setup .act, .go-on .act { font-size: 13px; letter-spacing: .24em; }
+.quit { font-size: 11px; letter-spacing: .2em; }
+@media (hover: hover) {
+  .act:hover { background: transparent; border-color: var(--ink); }
+  .act.main:hover { background: #f0f0f0; border-color: #f0f0f0; }
+  #go:hover { background: color-mix(in srgb, var(--go) 88%, #ffffff); border-color: transparent; }
+  .levels input:hover:not(:checked) + span, .mode input:hover:not(:checked) ~ .name { color: var(--ink); }
+  .mode input:hover:not(:checked) ~ .disc { border-color: var(--ink); color: var(--ink); }
+  .slide:hover .knob { border-color: var(--accent); }
+  .quit:hover { color: var(--bad); }
+}
+.cue.lost { text-decoration-color: #ff5a6a; }
+.cue.loose { text-decoration-color: #f2c14e; }
+.score.low, .figures dd.low { color: var(--bad); }
+.score.mid, .figures dd.mid { color: var(--part); }
+.score.high, .figures dd.high { color: var(--good); }
+#copy.copied { background: var(--go); border-color: var(--go); color: #ffffff; }
+/* the first screen is one framed panel: a hairline box with a bracket at each corner, the wordmark at its head,
+   and each setting under a small label with a hairline beneath it */
+.setup {
+  width: min(100%, 440px); padding: 30px 28px 28px; gap: 26px;
+  border: 1px solid var(--rule); background-color: rgba(255, 255, 255, .045);
+  --k: var(--ink); --arm: 18px; --in: 8px;
+  background-image: linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)),
+                    linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k)), linear-gradient(var(--k), var(--k));
+  background-repeat: no-repeat;
+  background-size: var(--arm) 1px, 1px var(--arm), var(--arm) 1px, 1px var(--arm), var(--arm) 1px, 1px var(--arm), var(--arm) 1px, 1px var(--arm);
+  background-position: var(--in) var(--in), var(--in) var(--in), calc(100% - var(--in)) var(--in), calc(100% - var(--in)) var(--in),
+                       var(--in) calc(100% - var(--in)), var(--in) calc(100% - var(--in)), calc(100% - var(--in)) calc(100% - var(--in)), calc(100% - var(--in)) calc(100% - var(--in));
+}
+.wordmark { margin: 0 0 -4px; font-family: "Major Mono Display", var(--font-mono); font-weight: 400; font-size: clamp(34px, 9vw, 46px); line-height: 1; letter-spacing: .04em; text-transform: lowercase; color: var(--ink); }
+.setup .eyebrow { display: block; padding-bottom: 7px; border-bottom: 1px solid var(--rule); font-size: 10px; }
+.setup .pair { column-gap: 20px; }
+@media (max-width: 560px) { .setup { padding: 24px 18px 20px; gap: 22px; } }
+@media (max-height: 700px) { .setup { gap: 18px; padding-top: 22px; } }
+.band { font-family: var(--font-mono); font-weight: 400; font-size: .2em; letter-spacing: .2em; }
+@media (max-width: 900px) {
+  .go-on { background: linear-gradient(to top, #131417 72%, transparent); }
+}
 </style>
 </head>
 <body>
 <main>
   <div class="setup" id="setup">
+    <h1 class="wordmark">axiom</h1>
     <div class="param">
       <span class="eyebrow" id="modes-name">Stimuli types</span>
     <div class="modes" id="modes" role="group" aria-labelledby="modes-name">
@@ -1578,7 +1696,8 @@ async function copyResults() {
     t.remove();
   }
   $('copy').textContent = ok ? 'Copied' : 'Could not copy';
-  setTimeout(() => { $('copy').textContent = 'Copy results'; }, 1800);
+  $('copy').classList.toggle('copied', ok);
+  setTimeout(() => { $('copy').textContent = 'Copy results'; $('copy').classList.remove('copied'); }, 1800);
 }
 function finish() {
   const r = run;
